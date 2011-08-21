@@ -3,6 +3,7 @@ package youroom4j;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,26 +71,31 @@ public class YouRoomClient {
 		// AndroidならXmlPullParser、JDKならStAXでパースしてオブジェクトに詰めた結果を返すので、処理を外出しして切り替えが容易な形にしておく
 		List<Entry> results = new ArrayList<Entry>();
 		XmlPullParser parser = Xml.newPullParser();
+		ByteArrayInputStream byteArrayInputStream = null;
 		try {
-			parser.setInput(new ByteArrayInputStream(line.getBytes("UTF-8")), "UTF-8");
+			byteArrayInputStream = new ByteArrayInputStream(line.getBytes("UTF-8"));
+			parser.setInput(byteArrayInputStream, "UTF-8");
 			int eventType = parser.getEventType();
 			Entry entry = null;
+			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
 			while (eventType != XmlPullParser.END_DOCUMENT) {
 				String tag = null;
 				switch (eventType) {
 				case XmlPullParser.START_TAG:
 					tag = parser.getName();
-					if (tag.equals("entry")) {
+					if ("entry".equals(tag)) {
 						entry = new Entry();
 					} else if (entry != null) {
-						if (tag.equals("content")) {
+						if ("content".equals(tag)) {
 							entry.setContent(parser.nextText());
+						} else if ("created-at".equals(tag)) {
+							entry.setCreatedAt(df.parse(parser.nextText() + "+0000"));
 						}
 					}
 					break;
 				case XmlPullParser.END_TAG:
 					tag = parser.getName();
-					if (tag.equals("entry")) {
+					if ("entry".equals(tag)) {
 						results.add(entry);
 					}
 					break;
@@ -98,8 +104,11 @@ public class YouRoomClient {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			if (byteArrayInputStream != null) {
+				byteArrayInputStream.close();
+			}
 		}
-		// FIXME ByteArrayInputStreamのcloseはXmlPullParserが勝手にやってくれるのか確認
 		return results;
 	}
 

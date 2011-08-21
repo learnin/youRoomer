@@ -1,18 +1,35 @@
 package com.github.learnin.youroomer;
 
-import com.github.learnin.youroomer.R;
 import java.util.Date;
+import java.util.List;
 
 public class Entry {
 
+	private long id;
 	private String content;
-	private Date created;
-	private String userName;
-	private String groupName;
+	private Date createdAt;
+	private Date updatedAt;
+	private Participation participation;
+	private List<Entry> children;
+
+	/**
+	 * idを取得します。
+	 * @return id
+	 */
+	public long getId() {
+	    return id;
+	}
+
+	/**
+	 * idを設定します。
+	 * @param id id
+	 */
+	public void setId(long id) {
+	    this.id = id;
+	}
 
 	/**
 	 * contentを取得します。
-	 *
 	 * @return content
 	 */
 	public String getContent() {
@@ -21,7 +38,6 @@ public class Entry {
 
 	/**
 	 * contentを設定します。
-	 *
 	 * @param content content
 	 */
 	public void setContent(String content) {
@@ -29,56 +45,67 @@ public class Entry {
 	}
 
 	/**
-	 * createdを取得します。
-	 *
-	 * @return created
+	 * createdAtを取得します。
+	 * @return createdAt
 	 */
-	public Date getCreated() {
-		return created;
+	public Date getCreatedAt() {
+		return createdAt;
 	}
 
 	/**
-	 * createdを設定します。
-	 *
-	 * @param created created
+	 * createdAtを設定します。
+	 * @param createdAt createdAt
 	 */
-	public void setCreated(Date created) {
-		this.created = created;
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
 	}
 
 	/**
-	 * userNameを取得します。
-	 *
-	 * @return userName
+	 * updatedAtを取得します。
+	 * @return updatedAt
 	 */
-	public String getUserName() {
-		return userName;
+	public Date getUpdatedAt() {
+	    return updatedAt;
 	}
 
 	/**
-	 * userNameを設定します。
-	 *
-	 * @param userName userName
+	 * updatedAtを設定します。
+	 * @param updatedAt updatedAt
 	 */
-	public void setUserName(String userName) {
-		this.userName = userName;
+	public void setUpdatedAt(Date updatedAt) {
+	    this.updatedAt = updatedAt;
 	}
 
 	/**
-	 * groupNameを取得します。
-	 *
-	 * @return groupName
+	 * participationを取得します。
+	 * @return participation
 	 */
-	public String getGroupName() {
-		return groupName;
+	public Participation getParticipation() {
+	    return participation;
 	}
 
 	/**
-	 * groupNameを設定します。
-	 *
-	 * @param groupName groupName
+	 * participationを設定します。
+	 * @param participation participation
 	 */
-	public void setGroupName(String groupName) {
-		this.groupName = groupName;
+	public void setParticipation(Participation participation) {
+	    this.participation = participation;
 	}
+
+	/**
+	 * childrenを取得します。
+	 * @return children
+	 */
+	public List<Entry> getChildren() {
+	    return children;
+	}
+
+	/**
+	 * childrenを設定します。
+	 * @param children children
+	 */
+	public void setChildren(List<Entry> children) {
+	    this.children = children;
+	}
+
 }

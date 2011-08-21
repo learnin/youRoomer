@@ -1,5 +1,6 @@
 package com.github.learnin.youroomer;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import android.content.Context;
@@ -8,12 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
-import com.github.learnin.youroomer.R;
 
 public class TimeLineListAdapter extends ArrayAdapter<Entry> {
 
 	private LayoutInflater mLayoutInflater;
 	private TextView mContent;
+	private TextView mCreatedAt;
 
 	public TimeLineListAdapter(Context context, List<Entry> entryList) {
 		super(context, 0, entryList);
@@ -29,11 +30,13 @@ public class TimeLineListAdapter extends ArrayAdapter<Entry> {
 			view = mLayoutInflater.inflate(R.layout.entry_row, null);
 		}
 
-		Entry item = this.getItem(position);
-		if (item != null) {
-			String title = item.getContent();
-			mContent = (TextView) view.findViewById(R.id.item_title);
-			mContent.setText(title);
+		Entry entry = this.getItem(position);
+		if (entry != null) {
+			mContent = (TextView) view.findViewById(R.id.content);
+			mContent.setText(entry.getContent());
+			mCreatedAt = (TextView) view.findViewById(R.id.created_at);
+			SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+			mCreatedAt.setText(df.format(entry.getCreatedAt()));
 		}
 		return view;
 	}
