@@ -13,8 +13,9 @@ import android.widget.TextView;
 public class TimeLineListAdapter extends ArrayAdapter<Entry> {
 
 	private LayoutInflater mLayoutInflater;
-	private TextView mContent;
+	private TextView mUsername;
 	private TextView mCreatedAt;
+	private TextView mContent;
 
 	public TimeLineListAdapter(Context context, List<Entry> entryList) {
 		super(context, 0, entryList);
@@ -32,11 +33,15 @@ public class TimeLineListAdapter extends ArrayAdapter<Entry> {
 
 		Entry entry = this.getItem(position);
 		if (entry != null) {
-			mContent = (TextView) view.findViewById(R.id.content);
-			mContent.setText(entry.getContent());
+			mUsername = (TextView) view.findViewById(R.id.username);
+			mUsername.setText(entry.getParticipation().getName());
+
 			mCreatedAt = (TextView) view.findViewById(R.id.created_at);
 			SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 			mCreatedAt.setText(df.format(entry.getCreatedAt()));
+
+			mContent = (TextView) view.findViewById(R.id.content);
+			mContent.setText(entry.getContent());
 		}
 		return view;
 	}

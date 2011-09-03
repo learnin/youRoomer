@@ -9,8 +9,13 @@ public class Entry {
 	private String content;
 	private Date createdAt;
 	private Date updatedAt;
+	private boolean canUpdate;
+	private boolean hasRead;
+	private int level;
+	private long rootId;
 	private Participation participation;
 	private List<Entry> children;
+	private Entry parent;
 
 	/**
 	 * idを取得します。
@@ -77,6 +82,70 @@ public class Entry {
 	}
 
 	/**
+	 * canUpdateを取得します。
+	 * @return canUpdate
+	 */
+	public boolean isCanUpdate() {
+	    return canUpdate;
+	}
+
+	/**
+	 * canUpdateを設定します。
+	 * @param canUpdate canUpdate
+	 */
+	public void setCanUpdate(boolean canUpdate) {
+	    this.canUpdate = canUpdate;
+	}
+
+	/**
+	 * hasReadを取得します。
+	 * @return hasRead
+	 */
+	public boolean isHasRead() {
+	    return hasRead;
+	}
+
+	/**
+	 * hasReadを設定します。
+	 * @param hasRead hasRead
+	 */
+	public void setHasRead(boolean hasRead) {
+	    this.hasRead = hasRead;
+	}
+
+	/**
+	 * levelを取得します。
+	 * @return level
+	 */
+	public int getLevel() {
+	    return level;
+	}
+
+	/**
+	 * levelを設定します。
+	 * @param level level
+	 */
+	public void setLevel(int level) {
+	    this.level = level;
+	}
+
+	/**
+	 * rootIdを取得します。
+	 * @return rootId
+	 */
+	public long getRootId() {
+	    return rootId;
+	}
+
+	/**
+	 * rootIdを設定します。
+	 * @param rootId rootId
+	 */
+	public void setRootId(long rootId) {
+	    this.rootId = rootId;
+	}
+
+	/**
 	 * participationを取得します。
 	 * @return participation
 	 */
@@ -106,6 +175,22 @@ public class Entry {
 	 */
 	public void setChildren(List<Entry> children) {
 	    this.children = children;
+	}
+
+	/**
+	 * parentを取得します。
+	 * @return parent
+	 */
+	public Entry getParent() {
+	    return parent;
+	}
+
+	/**
+	 * parentを設定します。
+	 * @param parent parent
+	 */
+	public void setParent(Entry parent) {
+	    this.parent = parent;
 	}
 
 }

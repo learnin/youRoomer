@@ -7,10 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import org.xmlpull.v1.XmlPullParser;
-
-import com.github.learnin.youroomer.Entry;
 
 import youroom4j.http.HttpRequestClient;
 import youroom4j.http.HttpRequestEntity;
@@ -18,6 +15,10 @@ import youroom4j.http.httpclient.HttpRequestClientImpl;
 import youroom4j.oauth.OAuthClient;
 import youroom4j.oauth.OAuthTokenCredential;
 import android.util.Xml;
+
+import com.github.learnin.youroomer.Entry;
+import com.github.learnin.youroomer.Group;
+import com.github.learnin.youroomer.Participation;
 
 //TODO 流れるようなインターフェースにしてはどうか？
 public class YouRoomClient {
@@ -76,7 +77,10 @@ public class YouRoomClient {
 			byteArrayInputStream = new ByteArrayInputStream(line.getBytes("UTF-8"));
 			parser.setInput(byteArrayInputStream, "UTF-8");
 			int eventType = parser.getEventType();
+			String parentTag = null;
 			Entry entry = null;
+			Participation participation = null;
+			Group group = null;
 			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
 			while (eventType != XmlPullParser.END_DOCUMENT) {
 				String tag = null;
@@ -85,17 +89,77 @@ public class YouRoomClient {
 					tag = parser.getName();
 					if ("entry".equals(tag)) {
 						entry = new Entry();
+						parentTag = "entry";
 					} else if (entry != null) {
-						if ("content".equals(tag)) {
-							entry.setContent(parser.nextText());
-						} else if ("created-at".equals(tag)) {
+						if ("created-at".equals(tag)) {
 							entry.setCreatedAt(df.parse(parser.nextText() + "+0000"));
+						} else if ("updated-at".equals(tag)) {
+							entry.setUpdatedAt(df.parse(parser.nextText() + "+0000"));
+						} else if ("root-id".equals(tag)) {
+							entry.setRootId(Long.parseLong(parser.nextText()));
+						} else if ("entry".equals(parentTag) && "id".equals(tag)) {
+							entry.setId(Long.parseLong(parser.nextText()));
+						} else if ("can-update".equals(tag)) {
+							entry.setCanUpdate(Boolean.parseBoolean(parser.nextText()));
+						} else if ("level".equals(tag)) {
+							entry.setLevel(Integer.parseInt(parser.nextText()));
+						} else if ("parent-id".equals(tag) && !"true".equals(parser.getAttributeValue(null, "nil"))) {
+							Entry parent = new Entry();
+							parent.setId(Long.parseLong(parser.nextText()));
+							List<Entry> children = new ArrayList<Entry>();
+							children.add(entry);
+							parent.setChildren(children);
+							entry.setParent(parent);
+						} else if ("content".equals(tag)) {
+							entry.setContent(parser.nextText());
+						} else if ("has-read".equals(tag)) {
+							entry.setHasRead(Boolean.parseBoolean(parser.nextText()));
+						} else if ("descendants-count".equals(tag)) {
+							// FIXME
+							// モデルにマッピングする形でつくるとこうなるが、実際にはホームTLで表示に必要なのは子供の数のみなのでパフォーマンスやリソース上、ムダが多すぎるので、
+							// どうするか要検討。画面に表示するプロパティだけをもつForm的なものを導入してもいいかも。
+							// ただ、そうするとFormはアプリに依存するのでyouRoom4jとしてはコールバックでやってもらうとかしかなくなってしまい、使い勝手がさがってしまう。
+							// JSON/XMLの内容を素直にそのままエンティティにマッピングすればライブラリとしてはいけるが、OOP的にやるのとどっちがいいかは
+							// コメント表示時の実装がどうなるか等もみながら検討する。
+							int descendantsCount = Integer.parseInt(parser.nextText());
+							if (descendantsCount > 0) {
+								List<Entry> children = new ArrayList<Entry>();
+								for (int i = 0; i < descendantsCount; i++) {
+									Entry child = new Entry();
+									children.add(child);
+								}
+								entry.setChildren(children);
+							}
+						} else if ("unread-comment-ids".equals(tag)) {
+							// FIXME
+						} else if ("participation".equals(tag)) {
+							parentTag = "participation";
+							participation = new Participation();
+						} else if (participation != null) {
+							if ("participation".equals(parentTag) && "name".equals(tag)) {
+								participation.setName(parser.nextText());
+							} else if ("group".equals(tag)) {
+								parentTag = "group";
+								group = new Group();
+							} else if (group != null) {
+								if ("group".equals(parentTag) && "name".equals(tag)) {
+									group.setName(parser.nextText());
+								} else if ("to-param".equals(tag)) {
+									group.setToParam(parser.nextText());
+								}
+							} else if ("participation".equals(parentTag) && "id".equals(tag)) {
+								participation.setId(Long.parseLong(parser.nextText()));
+							}
 						}
 					}
 					break;
 				case XmlPullParser.END_TAG:
 					tag = parser.getName();
-					if ("entry".equals(tag)) {
+					if ("group".equals(tag)) {
+						participation.setGroup(group);
+					} else if ("participation".equals(tag)) {
+						entry.setParticipation(participation);
+					} else if ("entry".equals(tag)) {
 						results.add(entry);
 					}
 					break;
