@@ -8,11 +8,11 @@ import java.util.List;
 import youroom4j.YouRoomClient;
 import youroom4j.oauth.OAuthTokenCredential;
 import android.app.ListActivity;
-import android.content.Intent;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.Toast;
-import com.github.learnin.youroomer.R;
 
 public class HomeTimeLineActivity extends ListActivity {
 
@@ -26,25 +26,23 @@ public class HomeTimeLineActivity extends ListActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.home_time_line);
 
-		Intent intent = getIntent();
-		if (intent != null) {
-			OAuthTokenCredential oAuthTokenCredential =
-				(OAuthTokenCredential) intent.getSerializableExtra("OAuthTokenCredential");
-			mYouRoomClient = YouRoomClientBuilder.createYouRoomClient();
-			mYouRoomClient.setOAuthTokenCredential(oAuthTokenCredential);
-			mItems = new ArrayList<Entry>();
-			mAdapter = new TimeLineListAdapter(this, mItems);
+		SharedPreferences sharedPreferences = getSharedPreferences("oauth", Context.MODE_PRIVATE);
+		OAuthTokenCredential oAuthTokenCredential = new OAuthTokenCredential();
+		oAuthTokenCredential.setToken(sharedPreferences.getString("token", ""));
+		oAuthTokenCredential.setTokenSecret(sharedPreferences.getString("tokenSecret", ""));
+		mYouRoomClient = YouRoomClientBuilder.createYouRoomClient();
+		mYouRoomClient.setOAuthTokenCredential(oAuthTokenCredential);
 
-			// FIXME onResumeへ移動。
-			// AsyncTaskはActivity抜けるときにはとめた方がいいだろう。ずっと動くものならServiceにすべきでそうでない非同期処理は画面に従属するのだから
-			// 画面から離れたらとめるべき。ホーム画面に移ったのにバックでまだなんか動いてるってのはキモい。
-			// で、そうすると、非同期処理実行中に例えばHOMEキー押した場合、再開してもonCreateはよばれないので処理がとまってしまうので、
-			// onResumeでの実装が必要となる。
-			GetTimeLineTask task = new GetTimeLineTask(this, mAdapter);
-			task.execute();
-		} else {
-			// FIXME
-		}
+		mItems = new ArrayList<Entry>();
+		mAdapter = new TimeLineListAdapter(this, mItems);
+
+		// FIXME onResumeへ移動。
+		// AsyncTaskはActivity抜けるときにはとめた方がいいだろう。ずっと動くものならServiceにすべきでそうでない非同期処理は画面に従属するのだから
+		// 画面から離れたらとめるべき。ホーム画面に移ったのにバックでまだなんか動いてるってのはキモい。
+		// で、そうすると、非同期処理実行中に例えばHOMEキー押した場合、再開してもonCreateはよばれないので処理がとまってしまうので、
+		// onResumeでの実装が必要となる。
+		GetTimeLineTask task = new GetTimeLineTask(this, mAdapter);
+		task.execute();
 	}
 
 	// FIXME onPauseでのAsyncTaskのキャンセル

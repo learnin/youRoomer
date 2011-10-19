@@ -15,7 +15,6 @@ import youroom4j.http.HttpResponseHandler;
 import youroom4j.http.httpclient.HttpRequestClientImpl;
 import youroom4j.oauth.OAuthClient;
 import youroom4j.oauth.OAuthTokenCredential;
-import android.util.Log;
 import android.util.Xml;
 
 import com.github.learnin.youroomer.Entry;
@@ -23,6 +22,8 @@ import com.github.learnin.youroomer.Group;
 import com.github.learnin.youroomer.Participation;
 
 //TODO 流れるようなインターフェースにしてはどうか？
+// FIXME 抽象クラスにして、サブクラスとしてAndroidYouRoomClientをつくる。インスタンス生成はYouRoomClientFactoryで。
+// TODO 401エラーが返った場合に、tokenエラーの場合は、OAuth認証フローへ導く動線があった方が良い。
 public class YouRoomClient {
 
 	private static final String REQUEST_TOKEN_URL = "http://youroom.in/oauth/request_token";
@@ -197,6 +198,7 @@ public class YouRoomClient {
 
 	// TODO 引数がurlでいいか(それとも、rとidにするか)は要検討。
 	// TODO このメソッドをクライアントから呼ぶのか、getTimeLine等このクラスの他メソッドから呼ぶのかは要検討。
+	// FIXME キャッシングを検討する。
 	public <T> T showPicture(String url, HttpResponseHandler<T> httpResponseHandler) throws IOException {
 		List<KeyValueString> paramList = new ArrayList<KeyValueString>();
 		paramList.add(new KeyValueString("format", "image"));

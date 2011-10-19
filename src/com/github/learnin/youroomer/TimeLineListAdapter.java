@@ -1,9 +1,7 @@
 package com.github.learnin.youroomer;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -57,11 +55,8 @@ public class TimeLineListAdapter extends ArrayAdapter<Entry> {
 		if (entry != null) {
 			mUserImage = (ImageView) view.findViewById(R.id.user_image);
 
-			// DefaultHttpClient dhc = new DefaultHttpClient();
-			// HttpResponse httpResponse;
-			// InputStream in = null;
 			try {
-				// FIXME 画像が表示されない
+				// FIXME このままだとスクロールの度にWebAPIリクエストで画像を取りに行くので遅い。
 				Bitmap bitmap =
 					mYouRoomClient.showPicture(
 						entry.getParticipation().getUserImageURI(),
@@ -79,50 +74,10 @@ public class TimeLineListAdapter extends ArrayAdapter<Entry> {
 										}
 									}
 								}
-								BufferedReader br = null;
-								try {
-									br = new BufferedReader(new InputStreamReader(responseEntity.getContent(), "UTF-8"));
-									StringBuilder result = new StringBuilder();
-									String line;
-									while ((line = br.readLine()) != null) {
-										result.append(line);
-									}
-									System.out.println(result.toString());
-								} finally {
-									if (br != null) {
-										try {
-											br.close();
-										} catch (IOException e) {
-										}
-									}
-								}
 								return null;
 							}
 						});
 				mUserImage.setImageBitmap(bitmap);
-				// httpResponse = dhc.execute(new
-				// HttpGet(entry.getParticipation().getUserImageURI()));
-				// if (httpResponse.getStatusLine().getStatusCode() ==
-				// HttpStatus.SC_OK) {
-				// HttpEntity httpEntity = httpResponse.getEntity();
-				// in = httpEntity.getContent();
-				// Bitmap bitm = BitmapFactory.decodeStream(in);
-				// mUserImage.setImageBitmap(bitm);
-				// // mUserImage.invalidate();
-				// }
-				// } catch (ClientProtocolException e) {
-				// e.printStackTrace();
-				// } catch (IOException e) {
-				// e.printStackTrace();
-				// } finally {
-				// if (in != null) {
-				// try {
-				// in.close();
-				// } catch (IOException e) {
-				// e.printStackTrace();
-				// }
-				// }
-				// }
 			} catch (Exception e) {
 				System.out.println(e);
 			}

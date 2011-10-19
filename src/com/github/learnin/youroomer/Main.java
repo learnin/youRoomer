@@ -5,6 +5,7 @@ import java.io.Serializable;
 
 import youroom4j.YouRoomClient;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -12,9 +13,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+// FIXME HomeTimeLineActivityから戻ったときに、またHomeTimeLineActivityへ行かないように制御が必要。
+// インテントフラグか、startActivityForResultで戻りを受けるコールバックメソッドでfinishするか
 public class Main extends Activity {
-
-	private static final String TAG = "Main";
 
 	private static final String CALLBACK_URL = "com.github.learnin.youroomer.main://oauthcallback";
 
@@ -26,17 +27,23 @@ public class Main extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		// TODO アクセストークンが保存済みかチェックして保存済みならHomeTimeLineActivityへインテント
 		if (savedInstanceState != null) {
 			Serializable oAuthTokenCredential = savedInstanceState.getSerializable("OAuthTokenCredential");
 			if (oAuthTokenCredential != null) {
 				Intent intent = new Intent(getApplicationContext(), HomeTimeLineActivity.class);
-				// FIXME インテント渡しではなく、SharedPreferenceやSQLite等、どこからでも取得できるものを使う
-				intent.putExtra("OAuthTokenCredential", oAuthTokenCredential);
 				startActivity(intent);
-			} else {
-				mYouRoomClient = YouRoomClientBuilder.createYouRoomClient();
 			}
+		}
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		SharedPreferences sharedPreferences = getSharedPreferences("oauth", Context.MODE_PRIVATE);
+		if (sharedPreferences.getString("token", null) != null
+			&& sharedPreferences.getString("tokenSecret", null) != null) {
+			Intent intent = new Intent(getApplicationContext(), HomeTimeLineActivity.class);
+			startActivity(intent);
 		} else {
 			mYouRoomClient = YouRoomClientBuilder.createYouRoomClient();
 		}
@@ -75,8 +82,6 @@ public class Main extends Activity {
 					.commit();
 
 				Intent intent2 = new Intent(getApplicationContext(), HomeTimeLineActivity.class);
-				// FIXME インテント渡しではなく、SharedPreferenceやSQLite等、どこからでも取得できるものを使う
-				intent2.putExtra("OAuthTokenCredential", mYouRoomClient.getOAuthTokenCredential());
 				startActivity(intent2);
 			} catch (IOException e) {
 				// FIXME
@@ -92,7 +97,9 @@ public class Main extends Activity {
 	}
 
 	private void saveInstanceState(Bundle outState) {
-		outState.putSerializable("OAuthTokenCredential", mYouRoomClient.getOAuthTokenCredential());
+		if (mYouRoomClient != null) {
+			outState.putSerializable("OAuthTokenCredential", mYouRoomClient.getOAuthTokenCredential());
+		}
 	}
 
 }
