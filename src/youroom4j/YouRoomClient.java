@@ -11,9 +11,11 @@ import org.xmlpull.v1.XmlPullParser;
 
 import youroom4j.http.HttpRequestClient;
 import youroom4j.http.HttpRequestEntity;
+import youroom4j.http.HttpResponseHandler;
 import youroom4j.http.httpclient.HttpRequestClientImpl;
 import youroom4j.oauth.OAuthClient;
 import youroom4j.oauth.OAuthTokenCredential;
+import android.util.Log;
 import android.util.Xml;
 
 import com.github.learnin.youroomer.Entry;
@@ -117,7 +119,7 @@ public class YouRoomClient {
 						} else if ("descendants-count".equals(tag)) {
 							// FIXME
 							// モデルにマッピングする形でつくるとこうなるが、実際にはホームTLで表示に必要なのは子供の数のみなのでパフォーマンスやリソース上、ムダが多すぎるので、
-							// どうするか要検討。画面に表示するプロパティだけをもつForm的なものを導入してもいいかも。
+							// どうするか要検討。画面に表示するプロパティだけをもつForm的なものを導入してもいいかも。(子供(コメント)数は<descendants-count>で返されるので)
 							// ただ、そうするとFormはアプリに依存するのでyouRoom4jとしてはコールバックでやってもらうとかしかなくなってしまい、使い勝手がさがってしまう。
 							// JSON/XMLの内容を素直にそのままエンティティにマッピングすればライブラリとしてはいけるが、OOP的にやるのとどっちがいいかは
 							// コメント表示時の実装がどうなるか等もみながら検討する。
@@ -138,6 +140,8 @@ public class YouRoomClient {
 						} else if (participation != null) {
 							if ("participation".equals(parentTag) && "name".equals(tag)) {
 								participation.setName(parser.nextText());
+							} else if ("participation".equals(parentTag) && "id".equals(tag)) {
+								participation.setId(Long.parseLong(parser.nextText()));
 							} else if ("group".equals(tag)) {
 								parentTag = "group";
 								group = new Group();
@@ -147,8 +151,6 @@ public class YouRoomClient {
 								} else if ("to-param".equals(tag)) {
 									group.setToParam(parser.nextText());
 								}
-							} else if ("participation".equals(parentTag) && "id".equals(tag)) {
-								participation.setId(Long.parseLong(parser.nextText()));
 							}
 						}
 					}
@@ -157,8 +159,10 @@ public class YouRoomClient {
 					tag = parser.getName();
 					if ("group".equals(tag)) {
 						participation.setGroup(group);
+						parentTag = "participation";
 					} else if ("participation".equals(tag)) {
 						entry.setParticipation(participation);
+						parentTag = "entry";
 					} else if ("entry".equals(tag)) {
 						results.add(entry);
 					}
@@ -189,6 +193,21 @@ public class YouRoomClient {
 		HttpRequestClient client = new HttpRequestClientImpl(5000, 10000, 0, Charset.forName("UTF-8"));
 		String line = client.execute(requestEntity);
 		System.out.println(line);
+	}
+
+	// TODO 引数がurlでいいか(それとも、rとidにするか)は要検討。
+	// TODO このメソッドをクライアントから呼ぶのか、getTimeLine等このクラスの他メソッドから呼ぶのかは要検討。
+	public <T> T showPicture(String url, HttpResponseHandler<T> httpResponseHandler) throws IOException {
+		List<KeyValueString> paramList = new ArrayList<KeyValueString>();
+		paramList.add(new KeyValueString("format", "image"));
+
+		HttpRequestEntity requestEntity = new HttpRequestEntity();
+		requestEntity.setUrl(url + "?format=image");
+		requestEntity.setMethod(HttpRequestEntity.GET);
+		oAuthClient.addOAuthTokenCredentialToRequestEntity(requestEntity, url, paramList);
+
+		HttpRequestClient client = new HttpRequestClientImpl(5000, 10000, 0, Charset.forName("UTF-8"));
+		return client.execute(requestEntity, httpResponseHandler);
 	}
 
 }

@@ -91,6 +91,7 @@ public class OAuthClient {
 			.append(OAuthEncoder.encode(baseStringURI))
 			.append("&")
 			.append(OAuthEncoder.encode(normalize(paramList)));
+		System.out.println(result.toString());
 		return result.toString();
 	}
 

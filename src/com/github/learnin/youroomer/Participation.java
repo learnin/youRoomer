@@ -59,4 +59,8 @@ public class Participation {
 	public void setGroup(Group group) {
 		this.group = group;
 	}
+
+	public String getUserImageURI() {
+		return "https://www.youroom.in/r/" + group.getToParam() + "/participations/" + id + "/picture";
+	}
 }

@@ -4,14 +4,13 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import youroom4j.YouRoomClient;
-import youroom4j.oauth.OAuthTokenCredential;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
-import com.github.learnin.youroomer.R;
 
 public class Main extends Activity {
 
@@ -29,8 +28,7 @@ public class Main extends Activity {
 
 		// TODO アクセストークンが保存済みかチェックして保存済みならHomeTimeLineActivityへインテント
 		if (savedInstanceState != null) {
-			Serializable oAuthTokenCredential =
-				savedInstanceState.getSerializable("OAuthTokenCredential");
+			Serializable oAuthTokenCredential = savedInstanceState.getSerializable("OAuthTokenCredential");
 			if (oAuthTokenCredential != null) {
 				Intent intent = new Intent(getApplicationContext(), HomeTimeLineActivity.class);
 				// FIXME インテント渡しではなく、SharedPreferenceやSQLite等、どこからでも取得できるものを使う
@@ -70,8 +68,12 @@ public class Main extends Activity {
 			String verifier = uri.getQueryParameter("oauth_verifier");
 			try {
 				mYouRoomClient.oAuthAccessTokenRequest(verifier);
-				// TODO SaveInstanceStateじゃなくてSharedPreferenceかSQLite使う
-//				mYouRoomClient.getTimeLine();
+				getSharedPreferences("oauth", MODE_PRIVATE)
+					.edit()
+					.putString("token", mYouRoomClient.getOAuthTokenCredential().getToken())
+					.putString("tokenSecret", mYouRoomClient.getOAuthTokenCredential().getTokenSecret())
+					.commit();
+
 				Intent intent2 = new Intent(getApplicationContext(), HomeTimeLineActivity.class);
 				// FIXME インテント渡しではなく、SharedPreferenceやSQLite等、どこからでも取得できるものを使う
 				intent2.putExtra("OAuthTokenCredential", mYouRoomClient.getOAuthTokenCredential());

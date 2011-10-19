@@ -5,9 +5,14 @@
 	android:layout_height="wrap_content"
 	android:orientation="vertical"
 	xmlns:android="http://schemas.android.com/apk/res/android">
+		<ImageView
+			android:id="@+id/user_image"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content" />
 	<LinearLayout android:orientation="horizontal"
 		android:layout_width="fill_parent" android:layout_height="wrap_content"
 		android:baselineAligned="true">
+
 		<TextView
 			android:id="@+id/username"
 			android:layout_width="wrap_content"
@@ -19,6 +24,14 @@
 		android:layout_width="fill_parent" android:layout_height="wrap_content"
 		android:baselineAligned="true"
 		android:gravity="right">
+			<TextView
+				android:id="@+id/comment_count"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:textColor="#ffffff"
+				android:textSize="10sp"
+				android:lines="1"
+				android:layout_marginRight="25dip" />
 			<TextView
 				android:id="@+id/created_at"
 				android:layout_width="wrap_content"
