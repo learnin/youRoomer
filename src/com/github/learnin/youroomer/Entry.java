@@ -101,7 +101,7 @@ public class Entry {
 	 * hasReadを取得します。
 	 * @return hasRead
 	 */
-	public boolean isHasRead() {
+	public boolean hasRead() {
 	    return hasRead;
 	}
 

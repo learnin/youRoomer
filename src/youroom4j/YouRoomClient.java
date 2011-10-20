@@ -59,6 +59,7 @@ public class YouRoomClient {
 		oAuthClient.tokenCredential(oauthVerifier);
 	}
 
+	// TODO 各種パラメータ(since, flat, page, read_state)対応
 	public List<Entry> getTimeLine() throws IOException {
 		List<KeyValueString> paramList = new ArrayList<KeyValueString>();
 		paramList.add(new KeyValueString("format", "xml"));

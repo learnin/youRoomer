@@ -31,6 +31,7 @@ public class TimeLineListAdapter extends ArrayAdapter<Entry> {
 	private TextView mCommentCount;
 	private ImageView mUserImage;
 	private YouRoomClient mYouRoomClient;
+	private TextView mHasRead;
 
 	public TimeLineListAdapter(Context context, List<Entry> entryList) {
 		super(context, 0, entryList);
@@ -84,6 +85,12 @@ public class TimeLineListAdapter extends ArrayAdapter<Entry> {
 
 			mUsername = (TextView) view.findViewById(R.id.username);
 			mUsername.setText(entry.getParticipation().getName());
+
+			// FIXME 未読表示仮実装。画像にする
+			if (entry.hasRead()) {
+				mHasRead = (TextView) view.findViewById(R.id.has_read);
+				mHasRead.setVisibility(View.INVISIBLE);
+			}
 
 			mCreatedAt = (TextView) view.findViewById(R.id.created_at);
 			SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
