@@ -12,19 +12,36 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.Button;
 import android.widget.Toast;
 
+// FIXME 他の画面も含めて全般的に、プリファレンスに保存されているOAuthクレデンシャルで401エラーになった場合(YouRoomClientで特定例外スロー？)は、OAuth認証フローへ導くようにする。
+// FIXME プログレス表示
 public class HomeTimeLineActivity extends ListActivity {
+
+	private static final String GET_TIME_LINE_TASK_STATUS_RUNNING = "GET_TIME_LINE_TASK_STATUS_RUNNING";
 
 	private ArrayList<Entry> mItems;
 	private TimeLineListAdapter mAdapter;
 	private YouRoomClient mYouRoomClient;
+	private GetTimeLineTask mGetTimeLineTask;
+	private boolean mIsLoaded = false;
+
+	private Button mReload;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.home_time_line);
+		setupView();
 
 		SharedPreferences sharedPreferences = getSharedPreferences("oauth", Context.MODE_PRIVATE);
 		OAuthTokenCredential oAuthTokenCredential = new OAuthTokenCredential();
@@ -33,19 +50,113 @@ public class HomeTimeLineActivity extends ListActivity {
 		mYouRoomClient = YouRoomClientBuilder.createYouRoomClient();
 		mYouRoomClient.setOAuthTokenCredential(oAuthTokenCredential);
 
-		mItems = new ArrayList<Entry>();
-		mAdapter = new TimeLineListAdapter(this, mItems);
+		registerForContextMenu(getListView());
+	}
 
-		// FIXME onResumeへ移動。
+	private void setupView() {
+		mReload = (Button) findViewById(R.id.reload);
+		mReload.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				getTimeLine();
+			}
+		});
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
 		// AsyncTaskはActivity抜けるときにはとめた方がいいだろう。ずっと動くものならServiceにすべきでそうでない非同期処理は画面に従属するのだから
 		// 画面から離れたらとめるべき。ホーム画面に移ったのにバックでまだなんか動いてるってのはキモい。
 		// で、そうすると、非同期処理実行中に例えばHOMEキー押した場合、再開してもonCreateはよばれないので処理がとまってしまうので、
 		// onResumeでの実装が必要となる。
-		GetTimeLineTask task = new GetTimeLineTask(this, mAdapter);
-		task.execute();
+		if (!mIsLoaded) {
+			getTimeLine();
+		}
 	}
 
-	// FIXME onPauseでのAsyncTaskのキャンセル
+	@Override
+	protected void onPause() {
+		super.onPause();
+		cancelGetTimeLineTask();
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		if (mGetTimeLineTask != null && mGetTimeLineTask.getStatus() == AsyncTask.Status.RUNNING) {
+			outState.putBoolean(GET_TIME_LINE_TASK_STATUS_RUNNING, true);
+		} else {
+			outState.putBoolean(GET_TIME_LINE_TASK_STATUS_RUNNING, false);
+		}
+	}
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+		if (savedInstanceState.getBoolean(GET_TIME_LINE_TASK_STATUS_RUNNING)) {
+			mIsLoaded = false;
+		}
+	}
+
+	private void getTimeLine() {
+		if (mGetTimeLineTask == null || mGetTimeLineTask.getStatus() != AsyncTask.Status.RUNNING) {
+			mReload.setEnabled(false);
+
+			mItems = new ArrayList<Entry>();
+			mAdapter = new TimeLineListAdapter(getApplicationContext(), mItems);
+
+			mGetTimeLineTask = new GetTimeLineTask(this, mAdapter);
+			mGetTimeLineTask.execute();
+		}
+	}
+
+	private void cancelGetTimeLineTask() {
+		if (mGetTimeLineTask != null && mGetTimeLineTask.getStatus() == AsyncTask.Status.RUNNING) {
+			mGetTimeLineTask.cancel(true);
+			mGetTimeLineTask = null;
+		}
+	}
+
+	// FIXME
+	// Android標準UI的にはコンテキストメニュー表示は長押しだが、ここではタップ時の動きがないのと、タップの方が操作性がよいと思うので長押しではなくタップにする
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, view, menuInfo);
+
+		// FIXME 3はコメントがある場合のみ。
+		// FIXME 定数化
+		menu.add(Menu.NONE, 1, Menu.NONE, "編集する");
+		menu.add(Menu.NONE, 2, Menu.NONE, "削除する");
+		menu.add(Menu.NONE, 3, Menu.NONE, "コメントを見る");
+		menu.add(Menu.NONE, 4, Menu.NONE, "コメントする");
+		menu.add(Menu.NONE, 5, Menu.NONE, "このエントリを共有する");
+	}
+
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		AdapterContextMenuInfo adapterinfo = (AdapterContextMenuInfo) item.getMenuInfo();
+		Entry entry = (Entry) getListAdapter().getItem(adapterinfo.position);
+		switch (item.getItemId()) {
+		case 1:
+			// FIXME 編集画面へインテント
+			break;
+		case 2:
+			// FIXME 削除確認、削除処理実装
+			break;
+		case 3:
+			// FIXME 詳細画面へインテント
+			break;
+		case 4:
+			// FIXME コメント入力画面へインテント
+			break;
+		case 5:
+			// FIXME 共有インテント
+			break;
+		default:
+			break;
+		}
+		return true;
+	}
 
 	// Activityのライフサイクルに合わせてTaskのライフサイクルを制御する実装が漏れた場合に、
 	// インナークラスによるエンクロージングクラスのインスタンスへの暗黙的な参照が残ってしまい、ActivityがGCされなくなることを防止するために
@@ -92,7 +203,17 @@ public class HomeTimeLineActivity extends ListActivity {
 				final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
 				if (homeTimeLineActivity != null) {
 					homeTimeLineActivity.setListAdapter(timeLineListAdapter);
+					homeTimeLineActivity.mIsLoaded = true;
+					homeTimeLineActivity.mReload.setEnabled(true);
 				}
+			}
+		}
+
+		@Override
+		protected void onCancelled() {
+			final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
+			if (homeTimeLineActivity != null) {
+				homeTimeLineActivity.mGetTimeLineTask = null;
 			}
 		}
 	}

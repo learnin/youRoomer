@@ -19,7 +19,8 @@ public final class R {
         public static final int created_at=0x7f050005;
         public static final int has_read=0x7f050003;
         public static final int item_container=0x7f050000;
-        public static final int login=0x7f050007;
+        public static final int login=0x7f050008;
+        public static final int reload=0x7f050007;
         public static final int user_image=0x7f050001;
         public static final int username=0x7f050002;
     }
@@ -32,5 +33,6 @@ public final class R {
         public static final int app_name=0x7f040001;
         public static final int hello=0x7f040000;
         public static final int login=0x7f040002;
+        public static final int reload=0x7f040003;
     }
 }

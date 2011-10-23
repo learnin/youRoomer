@@ -23,7 +23,7 @@ import com.github.learnin.youroomer.Participation;
 
 //TODO 流れるようなインターフェースにしてはどうか？
 // FIXME 抽象クラスにして、サブクラスとしてAndroidYouRoomClientをつくる。インスタンス生成はYouRoomClientFactoryで。
-// TODO 401エラーが返った場合に、tokenエラーの場合は、OAuth認証フローへ導く動線があった方が良い。
+// TODO 401エラーが返った場合に、tokenエラーの場合は、OAuth認証フローへ導く動線があった方が良い。このクラス自体で画面遷移させるわけにはいかないので特定の例外をスローするとかする。
 public class YouRoomClient {
 
 	private static final String REQUEST_TOKEN_URL = "http://youroom.in/oauth/request_token";

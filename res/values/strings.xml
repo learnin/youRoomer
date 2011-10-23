@@ -3,4 +3,5 @@
     <string name="hello">youRoomer</string>
     <string name="app_name">youRoomer</string>
     <string name="login">ログイン</string>
+    <string name="reload">更新</string>
 </resources>
