@@ -3,7 +3,16 @@
 	android:layout_width="fill_parent" android:layout_height="fill_parent">
 	<ListView android:id="@android:id/list" android:layout_width="fill_parent"
 		android:layout_height="fill_parent" />
-	<Button android:id="@+id/reload" android:layout_width="fill_parent"
-		android:layout_height="wrap_content" android:text="@string/reload"
-		android:layout_alignParentBottom="true" />
+	<LinearLayout android:layout_width="fill_parent"
+		android:layout_height="wrap_content" android:layout_alignParentBottom="true"
+		android:padding="5dip">
+		<Button android:id="@+id/show_room_list" android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:layout_weight="1"
+			android:layout_margin="5dip" android:text="@string/show_room_list"
+			android:layout_alignParentBottom="true" />
+		<Button android:id="@+id/reload" android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:layout_weight="1"
+			android:layout_margin="5dip" android:text="@string/reload"
+			android:layout_alignParentBottom="true" />
+	</LinearLayout>
 </RelativeLayout>

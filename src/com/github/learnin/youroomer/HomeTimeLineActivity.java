@@ -7,8 +7,11 @@ import java.util.List;
 
 import youroom4j.YouRoomClient;
 import youroom4j.oauth.OAuthTokenCredential;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -27,6 +30,7 @@ import android.widget.Toast;
 public class HomeTimeLineActivity extends ListActivity {
 
 	private static final String GET_TIME_LINE_TASK_STATUS_RUNNING = "GET_TIME_LINE_TASK_STATUS_RUNNING";
+	private static final int DIALOG_ROOM_LIST_ID = 0;
 
 	private ArrayList<Entry> mItems;
 	private TimeLineListAdapter mAdapter;
@@ -34,6 +38,7 @@ public class HomeTimeLineActivity extends ListActivity {
 	private GetTimeLineTask mGetTimeLineTask;
 	private boolean mIsLoaded = false;
 
+	private Button mShowRoomList;
 	private Button mReload;
 
 	/** Called when the activity is first created. */
@@ -41,7 +46,7 @@ public class HomeTimeLineActivity extends ListActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.home_time_line);
-		setupView();
+		setupView(savedInstanceState);
 
 		SharedPreferences sharedPreferences = getSharedPreferences("oauth", Context.MODE_PRIVATE);
 		OAuthTokenCredential oAuthTokenCredential = new OAuthTokenCredential();
@@ -53,11 +58,17 @@ public class HomeTimeLineActivity extends ListActivity {
 		registerForContextMenu(getListView());
 	}
 
-	private void setupView() {
+	private void setupView(final Bundle savedInstanceState) {
 		mReload = (Button) findViewById(R.id.reload);
 		mReload.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				getTimeLine();
+			}
+		});
+		mShowRoomList = (Button) findViewById(R.id.show_room_list);
+		mShowRoomList.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				showDialog(DIALOG_ROOM_LIST_ID, savedInstanceState);
 			}
 		});
 	}
@@ -77,6 +88,7 @@ public class HomeTimeLineActivity extends ListActivity {
 	@Override
 	protected void onPause() {
 		super.onPause();
+		dismissDialog(DIALOG_ROOM_LIST_ID);
 		cancelGetTimeLineTask();
 	}
 
@@ -95,6 +107,30 @@ public class HomeTimeLineActivity extends ListActivity {
 		super.onRestoreInstanceState(savedInstanceState);
 		if (savedInstanceState.getBoolean(GET_TIME_LINE_TASK_STATUS_RUNNING)) {
 			mIsLoaded = false;
+		}
+	}
+
+	@Override
+	protected Dialog onCreateDialog(int id, Bundle bundle) {
+		Dialog dialog = null;
+		switch (id) {
+		case DIALOG_ROOM_LIST_ID:
+			final View layoutView = getLayoutInflater().inflate(R.layout.room_list_dialog, null);
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			// FIXME ルーム一覧を取得して表示
+			return builder
+				.setTitle(getString(R.string.dialog_room_list_title))
+				.setCancelable(true)
+				.setPositiveButton(getString(R.string.close), new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.cancel();
+					}
+				})
+				.setView(layoutView)
+				.create();
+		default:
+			return dialog;
 		}
 	}
 

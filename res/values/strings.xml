@@ -4,4 +4,7 @@
     <string name="app_name">youRoomer</string>
     <string name="login">ログイン</string>
     <string name="reload">更新</string>
+    <string name="show_room_list">ルーム</string>
+    <string name="dialog_room_list_title">ルーム</string>
+    <string name="close">閉じる</string>
 </resources>
