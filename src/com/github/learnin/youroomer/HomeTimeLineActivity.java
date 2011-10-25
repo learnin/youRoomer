@@ -21,8 +21,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 // FIXME 他の画面も含めて全般的に、プリファレンスに保存されているOAuthクレデンシャルで401エラーになった場合(YouRoomClientで特定例外スロー？)は、OAuth認証フローへ導くようにする。
@@ -36,6 +39,7 @@ public class HomeTimeLineActivity extends ListActivity {
 	private TimeLineListAdapter mAdapter;
 	private YouRoomClient mYouRoomClient;
 	private GetTimeLineTask mGetTimeLineTask;
+	private GetRoomListTask mGetRoomListTask;
 	private boolean mIsLoaded = false;
 
 	private Button mShowRoomList;
@@ -90,6 +94,7 @@ public class HomeTimeLineActivity extends ListActivity {
 		super.onPause();
 		dismissDialog(DIALOG_ROOM_LIST_ID);
 		cancelGetTimeLineTask();
+		cancelGetRoomListTask();
 	}
 
 	@Override
@@ -117,20 +122,33 @@ public class HomeTimeLineActivity extends ListActivity {
 		case DIALOG_ROOM_LIST_ID:
 			final View layoutView = getLayoutInflater().inflate(R.layout.room_list_dialog, null);
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			// FIXME ルーム一覧を取得して表示
-			return builder
-				.setTitle(getString(R.string.dialog_room_list_title))
-				.setCancelable(true)
-				.setPositiveButton(getString(R.string.close), new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.cancel();
-					}
-				})
-				.setView(layoutView)
-				.create();
+			dialog =
+				builder
+					.setTitle(getString(R.string.dialog_room_list_title))
+					.setCancelable(true)
+					.setPositiveButton(getString(R.string.close), new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.cancel();
+						}
+					})
+					.setView(layoutView)
+					.create();
+			break;
 		default:
-			return dialog;
+			break;
+		}
+		return dialog;
+	}
+
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog, Bundle bundle) {
+		switch (id) {
+		case DIALOG_ROOM_LIST_ID:
+			getRoomList(dialog);
+			break;
+		default:
+			break;
 		}
 	}
 
@@ -150,6 +168,20 @@ public class HomeTimeLineActivity extends ListActivity {
 		if (mGetTimeLineTask != null && mGetTimeLineTask.getStatus() == AsyncTask.Status.RUNNING) {
 			mGetTimeLineTask.cancel(true);
 			mGetTimeLineTask = null;
+		}
+	}
+
+	private void getRoomList(Dialog dialog) {
+		if (mGetRoomListTask == null || mGetRoomListTask.getStatus() != AsyncTask.Status.RUNNING) {
+			mGetRoomListTask = new GetRoomListTask(this, dialog);
+			mGetRoomListTask.execute();
+		}
+	}
+
+	private void cancelGetRoomListTask() {
+		if (mGetRoomListTask != null && mGetRoomListTask.getStatus() == AsyncTask.Status.RUNNING) {
+			mGetRoomListTask.cancel(true);
+			mGetRoomListTask = null;
 		}
 	}
 
@@ -194,6 +226,28 @@ public class HomeTimeLineActivity extends ListActivity {
 		return true;
 	}
 
+	/**
+	 * ルーム一覧ダイアログにルーム一覧データをセットアップします。<br>
+	 *
+	 * @param dialog ダイアログ
+	 * @param groupList ルーム一覧
+	 */
+	public void setupRoomListDialog(Dialog dialog, List<Group> groupList) {
+		RoomListAdapter adapter = new RoomListAdapter(getApplicationContext(), groupList);
+		ListView listView = (ListView) dialog.findViewById(R.id.room_list);
+		listView.setAdapter(adapter);
+		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				ListView listView = (ListView) parent;
+				Group group = (Group) listView.getItemAtPosition(position);
+				// FIXME ルームTLアクティビティへインテント
+			}
+		});
+		ProgressBar progressBar = (ProgressBar) dialog.findViewById(R.id.progressBar);
+		progressBar.setVisibility(View.GONE);
+	}
+
 	// Activityのライフサイクルに合わせてTaskのライフサイクルを制御する実装が漏れた場合に、
 	// インナークラスによるエンクロージングクラスのインスタンスへの暗黙的な参照が残ってしまい、ActivityがGCされなくなることを防止するために
 	// staticなインナークラスとし、Activityへの参照を弱参照にする。
@@ -202,6 +256,8 @@ public class HomeTimeLineActivity extends ListActivity {
 		private WeakReference<HomeTimeLineActivity> mHomeTimeLineActivity;
 		private TimeLineListAdapter mAdapter;
 
+		// FIXME ルーム一覧ダイアログ表示のため、どのみちListViewが必要になっているが、
+		// 一方はListActivityで実装し、もう一方はListViewというのは見にくいのでListViewに統一する。
 		private GetTimeLineTask(HomeTimeLineActivity homeTimeLineActivity, TimeLineListAdapter mAdapter) {
 			mHomeTimeLineActivity = new WeakReference<HomeTimeLineActivity>(homeTimeLineActivity);
 			this.mAdapter = mAdapter;
@@ -215,7 +271,7 @@ public class HomeTimeLineActivity extends ListActivity {
 			final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
 			if (homeTimeLineActivity != null) {
 				try {
-					List<Entry> entryList = homeTimeLineActivity.mYouRoomClient.getTimeLine();
+					List<Entry> entryList = homeTimeLineActivity.mYouRoomClient.getHomeTimeLine();
 					for (Entry entry : entryList) {
 						mAdapter.add(entry);
 					}
@@ -250,6 +306,59 @@ public class HomeTimeLineActivity extends ListActivity {
 			final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
 			if (homeTimeLineActivity != null) {
 				homeTimeLineActivity.mGetTimeLineTask = null;
+			}
+		}
+	}
+
+	private static class GetRoomListTask extends AsyncTask<Void, Integer, List<Group>> {
+
+		private WeakReference<HomeTimeLineActivity> mHomeTimeLineActivity;
+		private WeakReference<Dialog> mDialog;
+
+		private GetRoomListTask(HomeTimeLineActivity homeTimeLineActivity, Dialog dialog) {
+			mHomeTimeLineActivity = new WeakReference<HomeTimeLineActivity>(homeTimeLineActivity);
+			mDialog = new WeakReference<Dialog>(dialog);
+		}
+
+		/*
+		 * バックグラウンドでデータを取得します。<br>
+		 */
+		@Override
+		protected List<Group> doInBackground(Void... params) {
+			final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
+			if (homeTimeLineActivity != null) {
+				try {
+					return homeTimeLineActivity.mYouRoomClient.getMyGroups();
+				} catch (IOException e) {
+					// FIXME
+					Toast.makeText(
+						homeTimeLineActivity.getApplicationContext(),
+						"YouRoomアクセスでエラーが発生しました。",
+						Toast.LENGTH_LONG).show();
+				}
+			}
+			return null;
+		}
+
+		/*
+		 * データ取得後、表示を行います。<br>
+		 */
+		@Override
+		protected void onPostExecute(List<Group> groupList) {
+			if (groupList != null) {
+				final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
+				final Dialog dialog = mDialog.get();
+				if (homeTimeLineActivity != null && dialog != null) {
+					homeTimeLineActivity.setupRoomListDialog(dialog, groupList);
+				}
+			}
+		}
+
+		@Override
+		protected void onCancelled() {
+			final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
+			if (homeTimeLineActivity != null) {
+				homeTimeLineActivity.mGetRoomListTask = null;
 			}
 		}
 	}

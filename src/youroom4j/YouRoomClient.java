@@ -60,7 +60,7 @@ public class YouRoomClient {
 	}
 
 	// TODO 各種パラメータ(since, flat, page, read_state)対応
-	public List<Entry> getTimeLine() throws IOException {
+	public List<Entry> getHomeTimeLine() throws IOException {
 		List<KeyValueString> paramList = new ArrayList<KeyValueString>();
 		paramList.add(new KeyValueString("format", "xml"));
 
@@ -182,7 +182,7 @@ public class YouRoomClient {
 		return results;
 	}
 
-	public void getMyGroup() throws IOException {
+	public List<Group> getMyGroups() throws IOException {
 		List<KeyValueString> paramList = new ArrayList<KeyValueString>();
 		paramList.add(new KeyValueString("format", "xml"));
 
@@ -195,6 +195,57 @@ public class YouRoomClient {
 		HttpRequestClient client = new HttpRequestClientImpl(5000, 10000, 0, Charset.forName("UTF-8"));
 		String line = client.execute(requestEntity);
 		System.out.println(line);
+		// FIXME
+		// AndroidならXmlPullParser、JDKならStAXでパースしてオブジェクトに詰めた結果を返すので、処理を外出しして切り替えが容易な形にしておく
+		List<Group> results = new ArrayList<Group>();
+		XmlPullParser parser = Xml.newPullParser();
+		ByteArrayInputStream byteArrayInputStream = null;
+		try {
+			byteArrayInputStream = new ByteArrayInputStream(line.getBytes("UTF-8"));
+			parser.setInput(byteArrayInputStream, "UTF-8");
+			int eventType = parser.getEventType();
+			Group group = null;
+			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
+			while (eventType != XmlPullParser.END_DOCUMENT) {
+				String tag = null;
+				switch (eventType) {
+				case XmlPullParser.START_TAG:
+					tag = parser.getName();
+					if ("group".equals(tag)) {
+						group = new Group();
+					} else if (group != null) {
+						if ("created-at".equals(tag)) {
+							group.setCreatedAt(df.parse(parser.nextText() + "+0000"));
+						} else if ("updated-at".equals(tag)) {
+							group.setUpdatedAt(df.parse(parser.nextText() + "+0000"));
+						} else if ("id".equals(tag)) {
+							group.setId(Long.parseLong(parser.nextText()));
+						} else if ("name".equals(tag)) {
+							group.setName(parser.nextText());
+						} else if ("to-param".equals(tag)) {
+							group.setToParam(parser.nextText());
+						} else if ("opened".equals(tag)) {
+							group.setOpened(Boolean.parseBoolean(parser.nextText()));
+						}
+					}
+					break;
+				case XmlPullParser.END_TAG:
+					tag = parser.getName();
+					if ("group".equals(tag)) {
+						results.add(group);
+					}
+					break;
+				}
+				eventType = parser.next();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (byteArrayInputStream != null) {
+				byteArrayInputStream.close();
+			}
+		}
+		return results;
 	}
 
 	// TODO 引数がurlでいいか(それとも、rとidにするか)は要検討。

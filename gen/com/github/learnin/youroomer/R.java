@@ -20,8 +20,12 @@ public final class R {
         public static final int has_read=0x7f050003;
         public static final int item_container=0x7f050000;
         public static final int login=0x7f050009;
+        public static final int name=0x7f05000c;
+        public static final int progressBar=0x7f05000b;
         public static final int reload=0x7f050008;
+        public static final int room_list=0x7f05000a;
         public static final int show_room_list=0x7f050007;
+        public static final int updated_at=0x7f05000d;
         public static final int user_image=0x7f050001;
         public static final int username=0x7f050002;
     }
@@ -30,6 +34,7 @@ public final class R {
         public static final int home_time_line=0x7f030001;
         public static final int main=0x7f030002;
         public static final int room_list_dialog=0x7f030003;
+        public static final int room_row=0x7f030004;
     }
     public static final class string {
         public static final int app_name=0x7f040001;
