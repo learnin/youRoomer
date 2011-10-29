@@ -94,9 +94,7 @@ public class HomeTimeLineActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		// FIXME ダイアログを一度も出していない場合、java.lang.IllegalArgumentException: no dialog
-		// with id 0 was ever shown via Activity#showDialogになる
-		dismissDialog(DIALOG_ROOM_LIST_ID);
+		removeDialog(DIALOG_ROOM_LIST_ID);
 		cancelGetTimeLineTask();
 		cancelGetRoomListTask();
 	}
