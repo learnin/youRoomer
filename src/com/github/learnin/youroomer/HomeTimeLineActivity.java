@@ -239,22 +239,22 @@ public class HomeTimeLineActivity extends Activity {
 	// }
 
 	/**
-	 * エントリ一覧ビューをセットアップします。<br>
+	 * エントリ一覧を表示します。<br>
 	 *
 	 * @param entryList エントリ一覧
 	 */
-	public void setupEntryListView(List<Entry> entryList) {
-		mListView.setAdapter(new TimeLineListAdapter(getApplicationContext(), entryList));
+	public void showEntryList(List<Entry> entryList) {
+		mListView.setAdapter(new HomeTimeLineListAdapter(getApplicationContext(), entryList));
 		// FIXME 進捗バー
 	}
 
 	/**
-	 * ルーム一覧ダイアログにルーム一覧データをセットアップします。<br>
+	 * ルーム一覧ダイアログにルーム一覧を表示します。<br>
 	 *
 	 * @param dialog ダイアログ
 	 * @param groupList ルーム一覧
 	 */
-	public void setupRoomListDialog(Dialog dialog, List<Group> groupList) {
+	public void showRoomListOnDialog(Dialog dialog, List<Group> groupList) {
 		ListView listView = (ListView) dialog.findViewById(R.id.room_list);
 		listView.setAdapter(new RoomListAdapter(getApplicationContext(), groupList));
 		ProgressBar progressBar = (ProgressBar) dialog.findViewById(R.id.progressBar);
@@ -300,7 +300,7 @@ public class HomeTimeLineActivity extends Activity {
 			if (entryList != null) {
 				final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
 				if (homeTimeLineActivity != null) {
-					homeTimeLineActivity.setupEntryListView(entryList);
+					homeTimeLineActivity.showEntryList(entryList);
 					homeTimeLineActivity.mIsLoaded = true;
 					homeTimeLineActivity.mReload.setEnabled(true);
 				}
@@ -355,7 +355,7 @@ public class HomeTimeLineActivity extends Activity {
 				final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
 				final Dialog dialog = mDialog.get();
 				if (homeTimeLineActivity != null && dialog != null) {
-					homeTimeLineActivity.setupRoomListDialog(dialog, groupList);
+					homeTimeLineActivity.showRoomListOnDialog(dialog, groupList);
 				}
 			}
 		}

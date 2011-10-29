@@ -22,7 +22,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class TimeLineListAdapter extends ArrayAdapter<Entry> {
+public class HomeTimeLineListAdapter extends ArrayAdapter<Entry> {
 
 	private LayoutInflater mLayoutInflater;
 	private TextView mUsername;
@@ -33,7 +33,7 @@ public class TimeLineListAdapter extends ArrayAdapter<Entry> {
 	private YouRoomClient mYouRoomClient;
 	private TextView mHasRead;
 
-	public TimeLineListAdapter(Context context, List<Entry> entryList) {
+	public HomeTimeLineListAdapter(Context context, List<Entry> entryList) {
 		super(context, 0, entryList);
 		mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		SharedPreferences sharedPreferences = context.getSharedPreferences("oauth", Context.MODE_PRIVATE);
