@@ -17,15 +17,17 @@ public final class R {
         public static final int comment_count=0x7f050004;
         public static final int content=0x7f050006;
         public static final int created_at=0x7f050005;
+        public static final int entry_container=0x7f050000;
+        public static final int entry_list=0x7f050007;
         public static final int has_read=0x7f050003;
-        public static final int item_container=0x7f050000;
-        public static final int login=0x7f050009;
-        public static final int name=0x7f05000c;
-        public static final int progressBar=0x7f05000b;
-        public static final int reload=0x7f050008;
-        public static final int room_list=0x7f05000a;
-        public static final int show_room_list=0x7f050007;
-        public static final int updated_at=0x7f05000d;
+        public static final int login=0x7f05000a;
+        public static final int name=0x7f05000e;
+        public static final int progressBar=0x7f05000c;
+        public static final int reload_button=0x7f050009;
+        public static final int room_container=0x7f05000d;
+        public static final int room_list=0x7f05000b;
+        public static final int show_room_list_button=0x7f050008;
+        public static final int updated_at=0x7f05000f;
         public static final int user_image=0x7f050001;
         public static final int username=0x7f050002;
     }

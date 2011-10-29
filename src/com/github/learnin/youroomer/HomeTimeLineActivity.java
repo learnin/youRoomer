@@ -2,27 +2,21 @@ package com.github.learnin.youroomer;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.List;
 
 import youroom4j.YouRoomClient;
 import youroom4j.oauth.OAuthTokenCredential;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -30,18 +24,17 @@ import android.widget.Toast;
 
 // FIXME 他の画面も含めて全般的に、プリファレンスに保存されているOAuthクレデンシャルで401エラーになった場合(YouRoomClientで特定例外スロー？)は、OAuth認証フローへ導くようにする。
 // FIXME プログレス表示
-public class HomeTimeLineActivity extends ListActivity {
+public class HomeTimeLineActivity extends Activity {
 
 	private static final String GET_TIME_LINE_TASK_STATUS_RUNNING = "GET_TIME_LINE_TASK_STATUS_RUNNING";
 	private static final int DIALOG_ROOM_LIST_ID = 0;
 
-	private ArrayList<Entry> mItems;
-	private TimeLineListAdapter mAdapter;
 	private YouRoomClient mYouRoomClient;
 	private GetTimeLineTask mGetTimeLineTask;
 	private GetRoomListTask mGetRoomListTask;
 	private boolean mIsLoaded = false;
 
+	private ListView mListView;
 	private Button mShowRoomList;
 	private Button mReload;
 
@@ -58,18 +51,27 @@ public class HomeTimeLineActivity extends ListActivity {
 		oAuthTokenCredential.setTokenSecret(sharedPreferences.getString("tokenSecret", ""));
 		mYouRoomClient = YouRoomClientBuilder.createYouRoomClient();
 		mYouRoomClient.setOAuthTokenCredential(oAuthTokenCredential);
-
-		registerForContextMenu(getListView());
 	}
 
 	private void setupView(final Bundle savedInstanceState) {
-		mReload = (Button) findViewById(R.id.reload);
+		mListView = (ListView) findViewById(R.id.entry_list);
+		mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				ListView listView = (ListView) parent;
+				Entry entry = (Entry) listView.getItemAtPosition(position);
+				// FIXME コンテキストメニュー表示
+				Toast.makeText(getApplicationContext(), entry.getParticipation().getName(), Toast.LENGTH_LONG).show();
+			}
+		});
+
+		mReload = (Button) findViewById(R.id.reload_button);
 		mReload.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				getTimeLine();
 			}
 		});
-		mShowRoomList = (Button) findViewById(R.id.show_room_list);
+		mShowRoomList = (Button) findViewById(R.id.show_room_list_button);
 		mShowRoomList.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				showDialog(DIALOG_ROOM_LIST_ID, savedInstanceState);
@@ -92,6 +94,8 @@ public class HomeTimeLineActivity extends ListActivity {
 	@Override
 	protected void onPause() {
 		super.onPause();
+		// FIXME ダイアログを一度も出していない場合、java.lang.IllegalArgumentException: no dialog
+		// with id 0 was ever shown via Activity#showDialogになる
 		dismissDialog(DIALOG_ROOM_LIST_ID);
 		cancelGetTimeLineTask();
 		cancelGetRoomListTask();
@@ -134,6 +138,17 @@ public class HomeTimeLineActivity extends ListActivity {
 					})
 					.setView(layoutView)
 					.create();
+
+			ListView listView = (ListView) layoutView.findViewById(R.id.room_list);
+			listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+				@Override
+				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+					ListView listView = (ListView) parent;
+					Group group = (Group) listView.getItemAtPosition(position);
+					// FIXME ルームTLアクティビティへインテント
+					Toast.makeText(getApplicationContext(), group.getName(), Toast.LENGTH_LONG).show();
+				}
+			});
 			break;
 		default:
 			break;
@@ -155,11 +170,7 @@ public class HomeTimeLineActivity extends ListActivity {
 	private void getTimeLine() {
 		if (mGetTimeLineTask == null || mGetTimeLineTask.getStatus() != AsyncTask.Status.RUNNING) {
 			mReload.setEnabled(false);
-
-			mItems = new ArrayList<Entry>();
-			mAdapter = new TimeLineListAdapter(getApplicationContext(), mItems);
-
-			mGetTimeLineTask = new GetTimeLineTask(this, mAdapter);
+			mGetTimeLineTask = new GetTimeLineTask(this);
 			mGetTimeLineTask.execute();
 		}
 	}
@@ -185,45 +196,58 @@ public class HomeTimeLineActivity extends ListActivity {
 		}
 	}
 
-	// FIXME
+	// // FIXME
+	// //
 	// Android標準UI的にはコンテキストメニュー表示は長押しだが、ここではタップ時の動きがないのと、タップの方が操作性がよいと思うので長押しではなくタップにする
-	@Override
-	public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfo) {
-		super.onCreateContextMenu(menu, view, menuInfo);
+	// @Override
+	// public void onCreateContextMenu(ContextMenu menu, View view,
+	// ContextMenuInfo menuInfo) {
+	// super.onCreateContextMenu(menu, view, menuInfo);
+	//
+	// // FIXME 3はコメントがある場合のみ。
+	// // FIXME 定数化
+	// menu.add(Menu.NONE, 1, Menu.NONE, "編集する");
+	// menu.add(Menu.NONE, 2, Menu.NONE, "削除する");
+	// menu.add(Menu.NONE, 3, Menu.NONE, "コメントを見る");
+	// menu.add(Menu.NONE, 4, Menu.NONE, "コメントする");
+	// menu.add(Menu.NONE, 5, Menu.NONE, "このエントリを共有する");
+	// }
+	//
+	// @Override
+	// public boolean onContextItemSelected(MenuItem item) {
+	// AdapterContextMenuInfo adapterinfo = (AdapterContextMenuInfo)
+	// item.getMenuInfo();
+	// Entry entry = (Entry) getListAdapter().getItem(adapterinfo.position);
+	// switch (item.getItemId()) {
+	// case 1:
+	// // FIXME 編集画面へインテント
+	// break;
+	// case 2:
+	// // FIXME 削除確認、削除処理実装
+	// break;
+	// case 3:
+	// // FIXME 詳細画面へインテント
+	// break;
+	// case 4:
+	// // FIXME コメント入力画面へインテント
+	// break;
+	// case 5:
+	// // FIXME 共有インテント
+	// break;
+	// default:
+	// break;
+	// }
+	// return true;
+	// }
 
-		// FIXME 3はコメントがある場合のみ。
-		// FIXME 定数化
-		menu.add(Menu.NONE, 1, Menu.NONE, "編集する");
-		menu.add(Menu.NONE, 2, Menu.NONE, "削除する");
-		menu.add(Menu.NONE, 3, Menu.NONE, "コメントを見る");
-		menu.add(Menu.NONE, 4, Menu.NONE, "コメントする");
-		menu.add(Menu.NONE, 5, Menu.NONE, "このエントリを共有する");
-	}
-
-	@Override
-	public boolean onContextItemSelected(MenuItem item) {
-		AdapterContextMenuInfo adapterinfo = (AdapterContextMenuInfo) item.getMenuInfo();
-		Entry entry = (Entry) getListAdapter().getItem(adapterinfo.position);
-		switch (item.getItemId()) {
-		case 1:
-			// FIXME 編集画面へインテント
-			break;
-		case 2:
-			// FIXME 削除確認、削除処理実装
-			break;
-		case 3:
-			// FIXME 詳細画面へインテント
-			break;
-		case 4:
-			// FIXME コメント入力画面へインテント
-			break;
-		case 5:
-			// FIXME 共有インテント
-			break;
-		default:
-			break;
-		}
-		return true;
+	/**
+	 * エントリ一覧ビューをセットアップします。<br>
+	 *
+	 * @param entryList エントリ一覧
+	 */
+	public void setupEntryListView(List<Entry> entryList) {
+		mListView.setAdapter(new TimeLineListAdapter(getApplicationContext(), entryList));
+		// FIXME 進捗バー
 	}
 
 	/**
@@ -233,17 +257,8 @@ public class HomeTimeLineActivity extends ListActivity {
 	 * @param groupList ルーム一覧
 	 */
 	public void setupRoomListDialog(Dialog dialog, List<Group> groupList) {
-		RoomListAdapter adapter = new RoomListAdapter(getApplicationContext(), groupList);
 		ListView listView = (ListView) dialog.findViewById(R.id.room_list);
-		listView.setAdapter(adapter);
-		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				ListView listView = (ListView) parent;
-				Group group = (Group) listView.getItemAtPosition(position);
-				// FIXME ルームTLアクティビティへインテント
-			}
-		});
+		listView.setAdapter(new RoomListAdapter(getApplicationContext(), groupList));
 		ProgressBar progressBar = (ProgressBar) dialog.findViewById(R.id.progressBar);
 		progressBar.setVisibility(View.GONE);
 	}
@@ -251,30 +266,23 @@ public class HomeTimeLineActivity extends ListActivity {
 	// Activityのライフサイクルに合わせてTaskのライフサイクルを制御する実装が漏れた場合に、
 	// インナークラスによるエンクロージングクラスのインスタンスへの暗黙的な参照が残ってしまい、ActivityがGCされなくなることを防止するために
 	// staticなインナークラスとし、Activityへの参照を弱参照にする。
-	private static class GetTimeLineTask extends AsyncTask<Void, Integer, TimeLineListAdapter> {
+	private static class GetTimeLineTask extends AsyncTask<Void, Integer, List<Entry>> {
 
 		private WeakReference<HomeTimeLineActivity> mHomeTimeLineActivity;
-		private TimeLineListAdapter mAdapter;
 
-		// FIXME ルーム一覧ダイアログ表示のため、どのみちListViewが必要になっているが、
-		// 一方はListActivityで実装し、もう一方はListViewというのは見にくいのでListViewに統一する。
-		private GetTimeLineTask(HomeTimeLineActivity homeTimeLineActivity, TimeLineListAdapter mAdapter) {
+		private GetTimeLineTask(HomeTimeLineActivity homeTimeLineActivity) {
 			mHomeTimeLineActivity = new WeakReference<HomeTimeLineActivity>(homeTimeLineActivity);
-			this.mAdapter = mAdapter;
 		}
 
 		/*
 		 * バックグラウンドでデータを取得します。<br>
 		 */
 		@Override
-		protected TimeLineListAdapter doInBackground(Void... params) {
+		protected List<Entry> doInBackground(Void... params) {
 			final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
 			if (homeTimeLineActivity != null) {
 				try {
-					List<Entry> entryList = homeTimeLineActivity.mYouRoomClient.getHomeTimeLine();
-					for (Entry entry : entryList) {
-						mAdapter.add(entry);
-					}
+					return homeTimeLineActivity.mYouRoomClient.getHomeTimeLine();
 				} catch (IOException e) {
 					// FIXME
 					Toast.makeText(
@@ -283,18 +291,18 @@ public class HomeTimeLineActivity extends ListActivity {
 						Toast.LENGTH_LONG).show();
 				}
 			}
-			return mAdapter;
+			return null;
 		}
 
 		/*
 		 * データ取得後、表示を行います。<br>
 		 */
 		@Override
-		protected void onPostExecute(TimeLineListAdapter timeLineListAdapter) {
-			if (timeLineListAdapter != null) {
+		protected void onPostExecute(List<Entry> entryList) {
+			if (entryList != null) {
 				final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
 				if (homeTimeLineActivity != null) {
-					homeTimeLineActivity.setListAdapter(timeLineListAdapter);
+					homeTimeLineActivity.setupEntryListView(entryList);
 					homeTimeLineActivity.mIsLoaded = true;
 					homeTimeLineActivity.mReload.setEnabled(true);
 				}
