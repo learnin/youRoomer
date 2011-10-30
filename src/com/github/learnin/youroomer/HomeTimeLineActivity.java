@@ -2,6 +2,7 @@ package com.github.learnin.youroomer;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 
 import youroom4j.YouRoomClient;
@@ -27,7 +28,15 @@ import android.widget.Toast;
 public class HomeTimeLineActivity extends Activity {
 
 	private static final String GET_TIME_LINE_TASK_STATUS_RUNNING = "GET_TIME_LINE_TASK_STATUS_RUNNING";
-	private static final int DIALOG_ROOM_LIST_ID = 0;
+
+	private static final int DIALOG_CONTEXT_MENU_ID = 0;
+	private static final int DIALOG_ROOM_LIST_ID = 1;
+
+	private static final int MENU_ITEM_EDIT_ID = 0;
+	private static final int MENU_ITEM_DELETE_ID = 1;
+	private static final int MENU_ITEM_SHOW_COMMENT_ID = 2;
+	private static final int MENU_ITEM_DO_COMMENT_ID = 3;
+	private static final int MENU_ITEM_SHARE_ID = 4;
 
 	private YouRoomClient mYouRoomClient;
 	private GetTimeLineTask mGetTimeLineTask;
@@ -56,11 +65,13 @@ public class HomeTimeLineActivity extends Activity {
 	private void setupView(final Bundle savedInstanceState) {
 		mListView = (ListView) findViewById(R.id.entry_list);
 		mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				ListView listView = (ListView) parent;
 				Entry entry = (Entry) listView.getItemAtPosition(position);
 				// FIXME コンテキストメニュー表示
+				showDialog(DIALOG_CONTEXT_MENU_ID, savedInstanceState);
 				Toast.makeText(getApplicationContext(), entry.getParticipation().getName(), Toast.LENGTH_LONG).show();
 			}
 		});
@@ -71,6 +82,7 @@ public class HomeTimeLineActivity extends Activity {
 				getTimeLine();
 			}
 		});
+
 		mShowRoomList = (Button) findViewById(R.id.show_room_list_button);
 		mShowRoomList.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
@@ -94,6 +106,7 @@ public class HomeTimeLineActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
+		removeDialog(DIALOG_CONTEXT_MENU_ID);
 		removeDialog(DIALOG_ROOM_LIST_ID);
 		cancelGetTimeLineTask();
 		cancelGetRoomListTask();
@@ -121,11 +134,79 @@ public class HomeTimeLineActivity extends Activity {
 	protected Dialog onCreateDialog(int id, Bundle bundle) {
 		Dialog dialog = null;
 		switch (id) {
+		case DIALOG_CONTEXT_MENU_ID:
+			final View ContextMenuDialogView = getLayoutInflater().inflate(R.layout.context_menu_dialog, null);
+			AlertDialog.Builder contextMenuDialogBuilder = new AlertDialog.Builder(this);
+			dialog =
+				contextMenuDialogBuilder
+					.setCancelable(true)
+					.setPositiveButton(getString(R.string.close), new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.cancel();
+						}
+					})
+					.setView(ContextMenuDialogView)
+					.create();
+
+			ListView contextMenuItemListView =
+				(ListView) ContextMenuDialogView.findViewById(R.id.context_menu_item_list);
+			List<MenuItem> menuItemList = new ArrayList<MenuItem>();
+			MenuItem menuItem = new MenuItem();
+			menuItem.setId(MENU_ITEM_EDIT_ID);
+			menuItem.setText("編集する");
+			menuItemList.add(menuItem);
+			MenuItem menuItem2 = new MenuItem();
+			menuItem2.setId(MENU_ITEM_DELETE_ID);
+			menuItem2.setText("削除する");
+			menuItemList.add(menuItem2);
+			// FIXME コメントがなければ出さない
+			MenuItem menuItem3 = new MenuItem();
+			menuItem3.setId(MENU_ITEM_SHOW_COMMENT_ID);
+			menuItem3.setText("コメントを見る");
+			menuItemList.add(menuItem3);
+			MenuItem menuItem4 = new MenuItem();
+			menuItem4.setId(MENU_ITEM_DO_COMMENT_ID);
+			menuItem4.setText("コメントする");
+			menuItemList.add(menuItem4);
+			MenuItem menuItem5 = new MenuItem();
+			menuItem5.setId(MENU_ITEM_SHARE_ID);
+			menuItem5.setText("このエントリを共有する");
+			menuItemList.add(menuItem5);
+			contextMenuItemListView.setAdapter(new ContextMenuItemListAdapter(getApplicationContext(), menuItemList));
+			contextMenuItemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+				@Override
+				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+					ListView listView = (ListView) parent;
+					MenuItem menuItem = (MenuItem) listView.getItemAtPosition(position);
+					Toast.makeText(getApplicationContext(), menuItem.getText(), Toast.LENGTH_LONG).show();
+					switch (menuItem.getId()) {
+					case MENU_ITEM_EDIT_ID:
+						// FIXME 編集画面へインテント
+						break;
+					case MENU_ITEM_DELETE_ID:
+						// FIXME 削除確認、削除処理実装
+						break;
+					case MENU_ITEM_SHOW_COMMENT_ID:
+						// FIXME 詳細画面へインテント
+						break;
+					case MENU_ITEM_DO_COMMENT_ID:
+						// FIXME コメント入力画面へインテント
+						break;
+					case MENU_ITEM_SHARE_ID:
+						// FIXME 共有インテント
+						break;
+					default:
+						break;
+					}
+				}
+			});
+			break;
 		case DIALOG_ROOM_LIST_ID:
 			final View layoutView = getLayoutInflater().inflate(R.layout.room_list_dialog, null);
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			AlertDialog.Builder roomListDialogBuilder = new AlertDialog.Builder(this);
 			dialog =
-				builder
+				roomListDialogBuilder
 					.setTitle(getString(R.string.dialog_room_list_title))
 					.setCancelable(true)
 					.setPositiveButton(getString(R.string.close), new DialogInterface.OnClickListener() {
@@ -137,8 +218,8 @@ public class HomeTimeLineActivity extends Activity {
 					.setView(layoutView)
 					.create();
 
-			ListView listView = (ListView) layoutView.findViewById(R.id.room_list);
-			listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			ListView roomListView = (ListView) layoutView.findViewById(R.id.room_list);
+			roomListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				@Override
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 					ListView listView = (ListView) parent;
@@ -193,50 +274,6 @@ public class HomeTimeLineActivity extends Activity {
 			mGetRoomListTask = null;
 		}
 	}
-
-	// // FIXME
-	// //
-	// Android標準UI的にはコンテキストメニュー表示は長押しだが、ここではタップ時の動きがないのと、タップの方が操作性がよいと思うので長押しではなくタップにする
-	// @Override
-	// public void onCreateContextMenu(ContextMenu menu, View view,
-	// ContextMenuInfo menuInfo) {
-	// super.onCreateContextMenu(menu, view, menuInfo);
-	//
-	// // FIXME 3はコメントがある場合のみ。
-	// // FIXME 定数化
-	// menu.add(Menu.NONE, 1, Menu.NONE, "編集する");
-	// menu.add(Menu.NONE, 2, Menu.NONE, "削除する");
-	// menu.add(Menu.NONE, 3, Menu.NONE, "コメントを見る");
-	// menu.add(Menu.NONE, 4, Menu.NONE, "コメントする");
-	// menu.add(Menu.NONE, 5, Menu.NONE, "このエントリを共有する");
-	// }
-	//
-	// @Override
-	// public boolean onContextItemSelected(MenuItem item) {
-	// AdapterContextMenuInfo adapterinfo = (AdapterContextMenuInfo)
-	// item.getMenuInfo();
-	// Entry entry = (Entry) getListAdapter().getItem(adapterinfo.position);
-	// switch (item.getItemId()) {
-	// case 1:
-	// // FIXME 編集画面へインテント
-	// break;
-	// case 2:
-	// // FIXME 削除確認、削除処理実装
-	// break;
-	// case 3:
-	// // FIXME 詳細画面へインテント
-	// break;
-	// case 4:
-	// // FIXME コメント入力画面へインテント
-	// break;
-	// case 5:
-	// // FIXME 共有インテント
-	// break;
-	// default:
-	// break;
-	// }
-	// return true;
-	// }
 
 	/**
 	 * エントリ一覧を表示します。<br>
