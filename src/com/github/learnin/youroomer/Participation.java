@@ -1,7 +1,10 @@
 package com.github.learnin.youroomer;
 
-public class Participation {
+import java.io.Serializable;
 
+public class Participation implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 	private long id;
 	private String name;
 	private Group group;

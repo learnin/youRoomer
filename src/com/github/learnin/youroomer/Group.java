@@ -1,5 +1,6 @@
 package com.github.learnin.youroomer;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -7,8 +8,9 @@ import java.util.Date;
  *
  * @author learn
  */
-public class Group {
+public class Group implements Serializable {
 
+	private static final long serialVersionUID = 1L;
 	private long id;
 	private Date createdAt;
 	private String name;

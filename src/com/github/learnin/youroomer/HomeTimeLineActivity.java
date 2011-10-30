@@ -70,9 +70,12 @@ public class HomeTimeLineActivity extends Activity {
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				ListView listView = (ListView) parent;
 				Entry entry = (Entry) listView.getItemAtPosition(position);
-				// FIXME コンテキストメニュー表示
-				showDialog(DIALOG_CONTEXT_MENU_ID, savedInstanceState);
-				Toast.makeText(getApplicationContext(), entry.getParticipation().getName(), Toast.LENGTH_LONG).show();
+				Bundle bundle = new Bundle();
+				if (savedInstanceState != null) {
+					bundle.putAll(savedInstanceState);
+				}
+				bundle.putSerializable("ENTRY", entry);
+				showDialog(DIALOG_CONTEXT_MENU_ID, bundle);
 			}
 		});
 
@@ -151,29 +154,6 @@ public class HomeTimeLineActivity extends Activity {
 
 			ListView contextMenuItemListView =
 				(ListView) ContextMenuDialogView.findViewById(R.id.context_menu_item_list);
-			List<MenuItem> menuItemList = new ArrayList<MenuItem>();
-			MenuItem menuItem = new MenuItem();
-			menuItem.setId(MENU_ITEM_EDIT_ID);
-			menuItem.setText("編集する");
-			menuItemList.add(menuItem);
-			MenuItem menuItem2 = new MenuItem();
-			menuItem2.setId(MENU_ITEM_DELETE_ID);
-			menuItem2.setText("削除する");
-			menuItemList.add(menuItem2);
-			// FIXME コメントがなければ出さない
-			MenuItem menuItem3 = new MenuItem();
-			menuItem3.setId(MENU_ITEM_SHOW_COMMENT_ID);
-			menuItem3.setText("コメントを見る");
-			menuItemList.add(menuItem3);
-			MenuItem menuItem4 = new MenuItem();
-			menuItem4.setId(MENU_ITEM_DO_COMMENT_ID);
-			menuItem4.setText("コメントする");
-			menuItemList.add(menuItem4);
-			MenuItem menuItem5 = new MenuItem();
-			menuItem5.setId(MENU_ITEM_SHARE_ID);
-			menuItem5.setText("このエントリを共有する");
-			menuItemList.add(menuItem5);
-			contextMenuItemListView.setAdapter(new ContextMenuItemListAdapter(getApplicationContext(), menuItemList));
 			contextMenuItemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				@Override
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -238,6 +218,39 @@ public class HomeTimeLineActivity extends Activity {
 	@Override
 	protected void onPrepareDialog(int id, Dialog dialog, Bundle bundle) {
 		switch (id) {
+		case DIALOG_CONTEXT_MENU_ID:
+			List<MenuItem> menuItemList = new ArrayList<MenuItem>();
+			MenuItem menuItem = new MenuItem();
+			menuItem.setId(MENU_ITEM_EDIT_ID);
+			menuItem.setText("編集する");
+			menuItemList.add(menuItem);
+			MenuItem menuItem2 = new MenuItem();
+			menuItem2.setId(MENU_ITEM_DELETE_ID);
+			menuItem2.setText("削除する");
+			menuItemList.add(menuItem2);
+
+			if (bundle != null && bundle.getSerializable("ENTRY") != null) {
+				Entry entry = (Entry) bundle.getSerializable("ENTRY");
+				if (entry.getChildren() != null && !entry.getChildren().isEmpty()) {
+					MenuItem menuItem3 = new MenuItem();
+					menuItem3.setId(MENU_ITEM_SHOW_COMMENT_ID);
+					menuItem3.setText("コメントを見る");
+					menuItemList.add(menuItem3);
+				}
+			}
+
+			MenuItem menuItem4 = new MenuItem();
+			menuItem4.setId(MENU_ITEM_DO_COMMENT_ID);
+			menuItem4.setText("コメントする");
+			menuItemList.add(menuItem4);
+			MenuItem menuItem5 = new MenuItem();
+			menuItem5.setId(MENU_ITEM_SHARE_ID);
+			menuItem5.setText("このエントリを共有する");
+			menuItemList.add(menuItem5);
+
+			ListView contextMenuItemListView = (ListView) dialog.findViewById(R.id.context_menu_item_list);
+			contextMenuItemListView.setAdapter(new ContextMenuItemListAdapter(getApplicationContext(), menuItemList));
+			break;
 		case DIALOG_ROOM_LIST_ID:
 			getRoomList(dialog);
 			break;
