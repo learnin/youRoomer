@@ -42,6 +42,8 @@ public class HomeTimeLineActivity extends Activity {
 	private GetTimeLineTask mGetTimeLineTask;
 	private GetRoomListTask mGetRoomListTask;
 	private boolean mIsLoaded = false;
+	private Dialog mContextMenuDialog;
+	private Dialog mRoomListDialog;
 
 	private ListView mListView;
 	private Button mShowRoomList;
@@ -109,10 +111,16 @@ public class HomeTimeLineActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		removeDialog(DIALOG_CONTEXT_MENU_ID);
-		removeDialog(DIALOG_ROOM_LIST_ID);
+		dismissDialog();
 		cancelGetTimeLineTask();
 		cancelGetRoomListTask();
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		removeDialog(DIALOG_CONTEXT_MENU_ID);
+		removeDialog(DIALOG_ROOM_LIST_ID);
 	}
 
 	@Override
@@ -135,12 +143,11 @@ public class HomeTimeLineActivity extends Activity {
 
 	@Override
 	protected Dialog onCreateDialog(int id, Bundle bundle) {
-		Dialog dialog = null;
 		switch (id) {
 		case DIALOG_CONTEXT_MENU_ID:
 			final View ContextMenuDialogView = getLayoutInflater().inflate(R.layout.context_menu_dialog, null);
 			AlertDialog.Builder contextMenuDialogBuilder = new AlertDialog.Builder(this);
-			dialog =
+			mContextMenuDialog =
 				contextMenuDialogBuilder
 					.setCancelable(true)
 					.setPositiveButton(getString(R.string.close), new DialogInterface.OnClickListener() {
@@ -181,11 +188,11 @@ public class HomeTimeLineActivity extends Activity {
 					}
 				}
 			});
-			break;
+			return mContextMenuDialog;
 		case DIALOG_ROOM_LIST_ID:
 			final View layoutView = getLayoutInflater().inflate(R.layout.room_list_dialog, null);
 			AlertDialog.Builder roomListDialogBuilder = new AlertDialog.Builder(this);
-			dialog =
+			mRoomListDialog =
 				roomListDialogBuilder
 					.setTitle(getString(R.string.dialog_room_list_title))
 					.setCancelable(true)
@@ -208,11 +215,10 @@ public class HomeTimeLineActivity extends Activity {
 					Toast.makeText(getApplicationContext(), group.getName(), Toast.LENGTH_LONG).show();
 				}
 			});
-			break;
+			return mRoomListDialog;
 		default:
-			break;
+			return null;
 		}
-		return dialog;
 	}
 
 	@Override
@@ -256,6 +262,15 @@ public class HomeTimeLineActivity extends Activity {
 			break;
 		default:
 			break;
+		}
+	}
+
+	private void dismissDialog() {
+		if (mContextMenuDialog != null) {
+			dismissDialog(DIALOG_CONTEXT_MENU_ID);
+		}
+		if (mRoomListDialog != null) {
+			dismissDialog(DIALOG_ROOM_LIST_ID);
 		}
 	}
 
