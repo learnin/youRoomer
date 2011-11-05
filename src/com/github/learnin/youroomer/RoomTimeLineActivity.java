@@ -1,10 +1,11 @@
 package com.github.learnin.youroomer;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import youroom4j.Entry;
+import youroom4j.YouRoom4JException;
 import youroom4j.YouRoomClient;
 import youroom4j.oauth.OAuthTokenCredential;
 import android.app.Activity;
@@ -281,7 +282,7 @@ public class RoomTimeLineActivity extends Activity {
 			if (roomTimeLineActivity != null) {
 				try {
 					return roomTimeLineActivity.mYouRoomClient.getRoomTimeLine(roomTimeLineActivity.mGroupToParam);
-				} catch (IOException e) {
+				} catch (YouRoom4JException e) {
 					// FIXME
 					Toast.makeText(
 						roomTimeLineActivity.getApplicationContext(),

@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.http.HttpStatus;
 
+import youroom4j.Entry;
 import youroom4j.YouRoomClient;
 import youroom4j.http.HttpResponseEntity;
 import youroom4j.http.HttpResponseHandler;

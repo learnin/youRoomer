@@ -1,6 +1,7 @@
-package com.github.learnin.youroomer;
+package youroom4j;
 
 import java.io.Serializable;
+
 
 public class Participation implements Serializable {
 

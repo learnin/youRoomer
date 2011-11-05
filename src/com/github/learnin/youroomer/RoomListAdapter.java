@@ -3,6 +3,8 @@ package com.github.learnin.youroomer;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
+import youroom4j.Group;
+
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;

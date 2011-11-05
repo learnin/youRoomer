@@ -1,10 +1,10 @@
-package com.github.learnin.youroomer;
+package youroom4j;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import youroom4j.Attachment;
+
 
 public class Entry implements Serializable {
 

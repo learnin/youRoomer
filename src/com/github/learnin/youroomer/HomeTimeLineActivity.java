@@ -5,6 +5,9 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import youroom4j.Entry;
+import youroom4j.Group;
+import youroom4j.YouRoom4JException;
 import youroom4j.YouRoomClient;
 import youroom4j.oauth.OAuthTokenCredential;
 import android.app.Activity;
@@ -349,7 +352,7 @@ public class HomeTimeLineActivity extends Activity {
 			if (homeTimeLineActivity != null) {
 				try {
 					return homeTimeLineActivity.mYouRoomClient.getHomeTimeLine();
-				} catch (IOException e) {
+				} catch (YouRoom4JException e) {
 					// FIXME
 					Toast.makeText(
 						homeTimeLineActivity.getApplicationContext(),
