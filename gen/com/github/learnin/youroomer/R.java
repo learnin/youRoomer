@@ -18,6 +18,7 @@ public final class R {
         public static final int content=0x7f050009;
         public static final int context_menu_container=0x7f050001;
         public static final int context_menu_item_list=0x7f050000;
+        public static final int create_entry_button=0x7f050013;
         public static final int created_at=0x7f050008;
         public static final int entry_container=0x7f050003;
         public static final int entry_list=0x7f05000a;
@@ -42,10 +43,12 @@ public final class R {
         public static final int main=0x7f030004;
         public static final int room_list_dialog=0x7f030005;
         public static final int room_row=0x7f030006;
+        public static final int room_time_line=0x7f030007;
     }
     public static final class string {
         public static final int app_name=0x7f040001;
         public static final int close=0x7f040006;
+        public static final int create_entry=0x7f040007;
         public static final int dialog_room_list_title=0x7f040005;
         public static final int hello=0x7f040000;
         public static final int login=0x7f040002;

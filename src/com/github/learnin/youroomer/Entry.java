@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+import youroom4j.Attachment;
+
 public class Entry implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -16,6 +18,7 @@ public class Entry implements Serializable {
 	private int level;
 	private long rootId;
 	private Participation participation;
+	private Attachment attachment;
 	private List<Entry> children;
 	private Entry parent;
 
@@ -179,6 +182,24 @@ public class Entry implements Serializable {
 	 */
 	public void setParticipation(Participation participation) {
 		this.participation = participation;
+	}
+
+	/**
+	 * attachmentを取得します。
+	 *
+	 * @return attachment
+	 */
+	public Attachment getAttachment() {
+		return attachment;
+	}
+
+	/**
+	 * attachmentを設定します。
+	 *
+	 * @param attachment attachment
+	 */
+	public void setAttachment(Attachment attachment) {
+		this.attachment = attachment;
 	}
 
 	/**

@@ -7,4 +7,5 @@
     <string name="show_room_list">ルーム</string>
     <string name="dialog_room_list_title">ルーム</string>
     <string name="close">閉じる</string>
+    <string name="create_entry">投稿する</string>
 </resources>

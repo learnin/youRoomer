@@ -21,18 +21,15 @@ import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
-// FIXME 他の画面も含めて全般的に、プリファレンスに保存されているOAuthクレデンシャルで401エラーになった場合(YouRoomClientで特定例外スロー？)は、OAuth認証フローへ導くようにする。
-// FIXME プログレス表示
-public class HomeTimeLineActivity extends Activity {
+// FIXME HomeTimeLineActivityと重複コードが多い。共通化する
+public class RoomTimeLineActivity extends Activity {
 
 	private static final String GET_TIME_LINE_TASK_STATUS_RUNNING =
-		"com.github.learnin.youroomer.HomeTimeLineActivity.GET_TIME_LINE_TASK_STATUS_RUNNING";
+		"com.github.learnin.youroomer.RoomTimeLineActivity.GET_TIME_LINE_TASK_STATUS_RUNNING";
 
 	private static final int DIALOG_CONTEXT_MENU_ID = 0;
-	private static final int DIALOG_ROOM_LIST_ID = 1;
 
 	private static final int MENU_ITEM_EDIT_ID = 0;
 	private static final int MENU_ITEM_DELETE_ID = 1;
@@ -42,20 +39,18 @@ public class HomeTimeLineActivity extends Activity {
 
 	private YouRoomClient mYouRoomClient;
 	private GetTimeLineTask mGetTimeLineTask;
-	private GetRoomListTask mGetRoomListTask;
 	private boolean mIsLoaded = false;
 	private Dialog mContextMenuDialog;
-	private Dialog mRoomListDialog;
+	private String mGroupToParam = null;
 
 	private ListView mListView;
-	private Button mShowRoomList;
+	private Button mCreateEntry;
 	private Button mReload;
 
-	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.home_time_line);
+		setContentView(R.layout.room_time_line);
 		setupView(savedInstanceState);
 
 		SharedPreferences sharedPreferences = getSharedPreferences("oauth", Context.MODE_PRIVATE);
@@ -90,10 +85,10 @@ public class HomeTimeLineActivity extends Activity {
 			}
 		});
 
-		mShowRoomList = (Button) findViewById(R.id.show_room_list_button);
-		mShowRoomList.setOnClickListener(new OnClickListener() {
+		mCreateEntry = (Button) findViewById(R.id.create_entry_button);
+		mCreateEntry.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				showDialog(DIALOG_ROOM_LIST_ID, savedInstanceState);
+				// FIXME 投稿画面へインテントする
 			}
 		});
 	}
@@ -101,10 +96,13 @@ public class HomeTimeLineActivity extends Activity {
 	@Override
 	public void onResume() {
 		super.onResume();
-		// AsyncTaskはActivity抜けるときにはとめた方がいいだろう。ずっと動くものならServiceにすべきでそうでない非同期処理は画面に従属するのだから
-		// 画面から離れたらとめるべき。ホーム画面に移ったのにバックでまだなんか動いてるってのはキモい。
-		// で、そうすると、非同期処理実行中に例えばHOMEキー押した場合、再開してもonCreateはよばれないので処理がとまってしまうので、
-		// onResumeでの実装が必要となる。
+		Intent intent = getIntent();
+		if (intent != null) {
+			CharSequence groupToParam = intent.getCharSequenceExtra("GROUP_TO_PARAM");
+			if (groupToParam != null) {
+				mGroupToParam = groupToParam.toString();
+			}
+		}
 		if (!mIsLoaded) {
 			getTimeLine();
 		}
@@ -115,14 +113,12 @@ public class HomeTimeLineActivity extends Activity {
 		super.onPause();
 		dismissDialog();
 		cancelGetTimeLineTask();
-		cancelGetRoomListTask();
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		removeDialog(DIALOG_CONTEXT_MENU_ID);
-		removeDialog(DIALOG_ROOM_LIST_ID);
 	}
 
 	@Override
@@ -191,34 +187,6 @@ public class HomeTimeLineActivity extends Activity {
 				}
 			});
 			return mContextMenuDialog;
-		case DIALOG_ROOM_LIST_ID:
-			final View layoutView = getLayoutInflater().inflate(R.layout.room_list_dialog, null);
-			AlertDialog.Builder roomListDialogBuilder = new AlertDialog.Builder(this);
-			mRoomListDialog =
-				roomListDialogBuilder
-					.setTitle(getString(R.string.dialog_room_list_title))
-					.setCancelable(true)
-					.setPositiveButton(getString(R.string.close), new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							dialog.cancel();
-						}
-					})
-					.setView(layoutView)
-					.create();
-
-			ListView roomListView = (ListView) layoutView.findViewById(R.id.room_list);
-			roomListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-				@Override
-				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-					ListView listView = (ListView) parent;
-					Group group = (Group) listView.getItemAtPosition(position);
-					Intent intent = new Intent(getApplicationContext(), RoomTimeLineActivity.class);
-					intent.putExtra("GROUP_TO_PARAM", group.getToParam());
-					startActivity(intent);
-				}
-			});
-			return mRoomListDialog;
 		default:
 			return null;
 		}
@@ -260,9 +228,6 @@ public class HomeTimeLineActivity extends Activity {
 			ListView contextMenuItemListView = (ListView) dialog.findViewById(R.id.context_menu_item_list);
 			contextMenuItemListView.setAdapter(new ContextMenuItemListAdapter(getApplicationContext(), menuItemList));
 			break;
-		case DIALOG_ROOM_LIST_ID:
-			getRoomList(dialog);
-			break;
 		default:
 			break;
 		}
@@ -271,9 +236,6 @@ public class HomeTimeLineActivity extends Activity {
 	private void dismissDialog() {
 		if (mContextMenuDialog != null) {
 			dismissDialog(DIALOG_CONTEXT_MENU_ID);
-		}
-		if (mRoomListDialog != null) {
-			dismissDialog(DIALOG_ROOM_LIST_ID);
 		}
 	}
 
@@ -292,52 +254,22 @@ public class HomeTimeLineActivity extends Activity {
 		}
 	}
 
-	private void getRoomList(Dialog dialog) {
-		if (mGetRoomListTask == null || mGetRoomListTask.getStatus() != AsyncTask.Status.RUNNING) {
-			mGetRoomListTask = new GetRoomListTask(this, dialog);
-			mGetRoomListTask.execute();
-		}
-	}
-
-	private void cancelGetRoomListTask() {
-		if (mGetRoomListTask != null && mGetRoomListTask.getStatus() == AsyncTask.Status.RUNNING) {
-			mGetRoomListTask.cancel(true);
-			mGetRoomListTask = null;
-		}
-	}
-
 	/**
 	 * エントリ一覧を表示します。<br>
 	 *
 	 * @param entryList エントリ一覧
 	 */
 	public void showEntryList(List<Entry> entryList) {
-		mListView.setAdapter(new HomeTimeLineListAdapter(getApplicationContext(), entryList));
+		mListView.setAdapter(new RoomTimeLineListAdapter(getApplicationContext(), entryList));
 		// FIXME 進捗バー
 	}
 
-	/**
-	 * ルーム一覧ダイアログにルーム一覧を表示します。<br>
-	 *
-	 * @param dialog ダイアログ
-	 * @param groupList ルーム一覧
-	 */
-	public void showRoomListOnDialog(Dialog dialog, List<Group> groupList) {
-		ListView listView = (ListView) dialog.findViewById(R.id.room_list);
-		listView.setAdapter(new RoomListAdapter(getApplicationContext(), groupList));
-		ProgressBar progressBar = (ProgressBar) dialog.findViewById(R.id.progressBar);
-		progressBar.setVisibility(View.GONE);
-	}
-
-	// Activityのライフサイクルに合わせてTaskのライフサイクルを制御する実装が漏れた場合に、
-	// インナークラスによるエンクロージングクラスのインスタンスへの暗黙的な参照が残ってしまい、ActivityがGCされなくなることを防止するために
-	// staticなインナークラスとし、Activityへの参照を弱参照にする。
 	private static class GetTimeLineTask extends AsyncTask<Void, Integer, List<Entry>> {
 
-		private WeakReference<HomeTimeLineActivity> mHomeTimeLineActivity;
+		private WeakReference<RoomTimeLineActivity> mRoomTimeLineActivity;
 
-		private GetTimeLineTask(HomeTimeLineActivity homeTimeLineActivity) {
-			mHomeTimeLineActivity = new WeakReference<HomeTimeLineActivity>(homeTimeLineActivity);
+		private GetTimeLineTask(RoomTimeLineActivity roomTimeLineActivity) {
+			mRoomTimeLineActivity = new WeakReference<RoomTimeLineActivity>(roomTimeLineActivity);
 		}
 
 		/*
@@ -345,14 +277,14 @@ public class HomeTimeLineActivity extends Activity {
 		 */
 		@Override
 		protected List<Entry> doInBackground(Void... params) {
-			final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
-			if (homeTimeLineActivity != null) {
+			final RoomTimeLineActivity roomTimeLineActivity = mRoomTimeLineActivity.get();
+			if (roomTimeLineActivity != null) {
 				try {
-					return homeTimeLineActivity.mYouRoomClient.getHomeTimeLine();
+					return roomTimeLineActivity.mYouRoomClient.getRoomTimeLine(roomTimeLineActivity.mGroupToParam);
 				} catch (IOException e) {
 					// FIXME
 					Toast.makeText(
-						homeTimeLineActivity.getApplicationContext(),
+						roomTimeLineActivity.getApplicationContext(),
 						"YouRoomアクセスでエラーが発生しました。",
 						Toast.LENGTH_LONG).show();
 				}
@@ -366,73 +298,20 @@ public class HomeTimeLineActivity extends Activity {
 		@Override
 		protected void onPostExecute(List<Entry> entryList) {
 			if (entryList != null) {
-				final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
-				if (homeTimeLineActivity != null) {
-					homeTimeLineActivity.showEntryList(entryList);
-					homeTimeLineActivity.mIsLoaded = true;
-					homeTimeLineActivity.mReload.setEnabled(true);
+				final RoomTimeLineActivity roomTimeLineActivity = mRoomTimeLineActivity.get();
+				if (roomTimeLineActivity != null) {
+					roomTimeLineActivity.showEntryList(entryList);
+					roomTimeLineActivity.mIsLoaded = true;
+					roomTimeLineActivity.mReload.setEnabled(true);
 				}
 			}
 		}
 
 		@Override
 		protected void onCancelled() {
-			final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
-			if (homeTimeLineActivity != null) {
-				homeTimeLineActivity.mGetTimeLineTask = null;
-			}
-		}
-	}
-
-	private static class GetRoomListTask extends AsyncTask<Void, Integer, List<Group>> {
-
-		private WeakReference<HomeTimeLineActivity> mHomeTimeLineActivity;
-		private WeakReference<Dialog> mDialog;
-
-		private GetRoomListTask(HomeTimeLineActivity homeTimeLineActivity, Dialog dialog) {
-			mHomeTimeLineActivity = new WeakReference<HomeTimeLineActivity>(homeTimeLineActivity);
-			mDialog = new WeakReference<Dialog>(dialog);
-		}
-
-		/*
-		 * バックグラウンドでデータを取得します。<br>
-		 */
-		@Override
-		protected List<Group> doInBackground(Void... params) {
-			final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
-			if (homeTimeLineActivity != null) {
-				try {
-					return homeTimeLineActivity.mYouRoomClient.getMyGroups();
-				} catch (IOException e) {
-					// FIXME
-					Toast.makeText(
-						homeTimeLineActivity.getApplicationContext(),
-						"YouRoomアクセスでエラーが発生しました。",
-						Toast.LENGTH_LONG).show();
-				}
-			}
-			return null;
-		}
-
-		/*
-		 * データ取得後、表示を行います。<br>
-		 */
-		@Override
-		protected void onPostExecute(List<Group> groupList) {
-			if (groupList != null) {
-				final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
-				final Dialog dialog = mDialog.get();
-				if (homeTimeLineActivity != null && dialog != null) {
-					homeTimeLineActivity.showRoomListOnDialog(dialog, groupList);
-				}
-			}
-		}
-
-		@Override
-		protected void onCancelled() {
-			final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
-			if (homeTimeLineActivity != null) {
-				homeTimeLineActivity.mGetRoomListTask = null;
+			final RoomTimeLineActivity roomTimeLineActivity = mRoomTimeLineActivity.get();
+			if (roomTimeLineActivity != null) {
+				roomTimeLineActivity.mGetTimeLineTask = null;
 			}
 		}
 	}

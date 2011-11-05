@@ -150,7 +150,7 @@ public class YouRoomClient {
 							} else if (group != null) {
 								if ("group".equals(parentTag) && "name".equals(tag)) {
 									group.setName(parser.nextText());
-								} else if ("to-param".equals(tag)) {
+								} else if ("group".equals(parentTag) && "to-param".equals(tag)) {
 									group.setToParam(parser.nextText());
 								}
 							}
@@ -167,6 +167,152 @@ public class YouRoomClient {
 						parentTag = "entry";
 					} else if ("entry".equals(tag)) {
 						results.add(entry);
+					}
+					break;
+				}
+				eventType = parser.next();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (byteArrayInputStream != null) {
+				byteArrayInputStream.close();
+			}
+		}
+		return results;
+	}
+
+	// TODO 各種パラメータ(since, search_query, flat, page, read_state)対応
+	// FIXME getHomeTimeLine()とのコードの重複を何とかする
+	public List<Entry> getRoomTimeLine(String groupParam) throws IOException {
+		List<KeyValueString> paramList = new ArrayList<KeyValueString>();
+		paramList.add(new KeyValueString("format", "xml"));
+
+		HttpRequestEntity requestEntity = new HttpRequestEntity();
+		requestEntity.setUrl("https://www.youroom.in/r/" + groupParam + "/?format=xml");
+		requestEntity.setMethod(HttpRequestEntity.GET);
+		oAuthClient.addOAuthTokenCredentialToRequestEntity(requestEntity, "https://www.youroom.in/r/" + groupParam + "/", paramList);
+
+		HttpRequestClient client = new HttpRequestClientImpl(5000, 10000, 0, Charset.forName("UTF-8"));
+		String line = client.execute(requestEntity);
+		System.out.println(line);
+		// FIXME
+		// AndroidならXmlPullParser、JDKならStAXでパースしてオブジェクトに詰めた結果を返すので、処理を外出しして切り替えが容易な形にしておく
+		List<Entry> results = new ArrayList<Entry>();
+		XmlPullParser parser = Xml.newPullParser();
+		ByteArrayInputStream byteArrayInputStream = null;
+		try {
+			byteArrayInputStream = new ByteArrayInputStream(line.getBytes("UTF-8"));
+			parser.setInput(byteArrayInputStream, "UTF-8");
+			int eventType = parser.getEventType();
+			String parentTag = null;
+			Entry entry = null;
+			Attachment attachment = null;
+			Participation participation = null;
+			Group group = null;
+			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
+			while (eventType != XmlPullParser.END_DOCUMENT) {
+				String tag = null;
+				switch (eventType) {
+				case XmlPullParser.START_TAG:
+					tag = parser.getName();
+					if ("entry".equals(tag) && parentTag == null) {
+						entry = new Entry();
+						parentTag = "entry";
+					} else if (entry != null && "entry".equals(parentTag)) {
+						if ("created-at".equals(tag)) {
+							entry.setCreatedAt(df.parse(parser.nextText() + "+0000"));
+						} else if ("updated-at".equals(tag)) {
+							entry.setUpdatedAt(df.parse(parser.nextText() + "+0000"));
+						} else if ("root-id".equals(tag)) {
+							entry.setRootId(Long.parseLong(parser.nextText()));
+						} else if ("id".equals(tag)) {
+							entry.setId(Long.parseLong(parser.nextText()));
+						} else if ("can-update".equals(tag)) {
+							entry.setCanUpdate(Boolean.parseBoolean(parser.nextText()));
+						} else if ("level".equals(tag)) {
+							entry.setLevel(Integer.parseInt(parser.nextText()));
+						} else if ("parent-id".equals(tag) && !"true".equals(parser.getAttributeValue(null, "nil"))) {
+							Entry parent = new Entry();
+							parent.setId(Long.parseLong(parser.nextText()));
+							List<Entry> children = new ArrayList<Entry>();
+							children.add(entry);
+							parent.setChildren(children);
+							entry.setParent(parent);
+						} else if ("content".equals(tag)) {
+							entry.setContent(parser.nextText());
+						} else if ("has-read".equals(tag)) {
+							entry.setHasRead(Boolean.parseBoolean(parser.nextText()));
+						} else if ("descendants-count".equals(tag)) {
+							// FIXME
+							// モデルにマッピングする形でつくるとこうなるが、実際にはホームTLで表示に必要なのは子供の数のみなのでパフォーマンスやリソース上、ムダが多すぎるので、
+							// どうするか要検討。画面に表示するプロパティだけをもつForm的なものを導入してもいいかも。(子供(コメント)数は<descendants-count>で返されるので)
+							// ただ、そうするとFormはアプリに依存するのでyouRoom4jとしてはコールバックでやってもらうとかしかなくなってしまい、使い勝手がさがってしまう。
+							// JSON/XMLの内容を素直にそのままエンティティにマッピングすればライブラリとしてはいけるが、OOP的にやるのとどっちがいいかは
+							// コメント表示時の実装がどうなるか等もみながら検討する。
+							int descendantsCount = Integer.parseInt(parser.nextText());
+							if (descendantsCount > 0) {
+								List<Entry> children = new ArrayList<Entry>();
+								for (int i = 0; i < descendantsCount; i++) {
+									Entry child = new Entry();
+									children.add(child);
+								}
+								entry.setChildren(children);
+							}
+						} else if ("unread-comment-ids".equals(tag)) {
+							// FIXME
+						} else if ("attachment".equals(tag)) {
+							parentTag = "attachment";
+							attachment = new Attachment();
+						} else if ("participation".equals(tag)) {
+							parentTag = "participation";
+							participation = new Participation();
+						}
+					} else if (attachment != null && "attachment".equals(parentTag)) {
+						if ("original-filename".equals(tag)) {
+							attachment.setOriginalFilename(parser.nextText());
+						} else if ("data".equals(tag) && !"true".equals(parser.getAttributeValue(null, "nil"))) {
+							// FIXME
+						} else if ("content-type".equals(tag)) {
+							attachment.setContentType(parser.nextText());
+						} else if ("attachment-type".equals(tag)) {
+							attachment.setAttachmentType(parser.nextText());
+						} else if ("filename".equals(tag)) {
+							attachment.setFilename(parser.nextText());
+						}
+					} else if (participation != null && "participation".equals(parentTag)) {
+						if ("name".equals(tag)) {
+							participation.setName(parser.nextText());
+						} else if ("id".equals(tag)) {
+							participation.setId(Long.parseLong(parser.nextText()));
+						} else if ("group".equals(tag)) {
+							parentTag = "group";
+							group = new Group();
+						}
+					} else if (group != null && "group".equals(parentTag)) {
+						if ("name".equals(tag)) {
+							group.setName(parser.nextText());
+						} else if ("to-param".equals(tag)) {
+							group.setToParam(parser.nextText());
+						} else if ("categories".equals(tag)) {
+							// FIXME
+						}
+					}
+					break;
+				case XmlPullParser.END_TAG:
+					tag = parser.getName();
+					if ("group".equals(tag)) {
+						participation.setGroup(group);
+						parentTag = "participation";
+					} else if ("participation".equals(tag)) {
+						entry.setParticipation(participation);
+						parentTag = "entry";
+					} else if ("attachment".equals(tag)) {
+						entry.setAttachment(attachment);
+						parentTag = "entry";
+					} else if ("entry".equals(tag)) {
+						results.add(entry);
+						parentTag = null;
 					}
 					break;
 				}

@@ -22,6 +22,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".HomeTimeLineActivity" />
+        <activity android:name=".RoomTimeLineActivity" />
 
     </application>
 	<uses-permission android:name="android.permission.INTERNET" />
