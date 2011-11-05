@@ -1,8 +1,8 @@
 package com.github.learnin.youroomer;
 
-import java.io.IOException;
 import java.io.Serializable;
 
+import youroom4j.YouRoom4JException;
 import youroom4j.YouRoomClient;
 import android.app.Activity;
 import android.content.Context;
@@ -53,7 +53,7 @@ public class Main extends Activity {
 		String url = null;
 		try {
 			url = mYouRoomClient.oAuthRequestTokenRequest(CALLBACK_URL);
-		} catch (IOException e) {
+		} catch (YouRoom4JException e) {
 			// FIXME
 			showToast("YouRoomアクセスでエラーが発生しました。");
 		}
@@ -83,7 +83,7 @@ public class Main extends Activity {
 
 				Intent intent2 = new Intent(getApplicationContext(), HomeTimeLineActivity.class);
 				startActivity(intent2);
-			} catch (IOException e) {
+			} catch (YouRoom4JException e) {
 				// FIXME
 				showToast("YouRoomアクセスでエラーが発生しました。");
 			}

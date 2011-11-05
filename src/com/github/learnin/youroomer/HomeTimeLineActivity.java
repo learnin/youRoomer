@@ -407,8 +407,9 @@ public class HomeTimeLineActivity extends Activity {
 			if (homeTimeLineActivity != null) {
 				try {
 					return homeTimeLineActivity.mYouRoomClient.getMyGroups();
-				} catch (IOException e) {
+				} catch (YouRoom4JException e) {
 					// FIXME
+					e.printStackTrace();
 					Toast.makeText(
 						homeTimeLineActivity.getApplicationContext(),
 						"YouRoomアクセスでエラーが発生しました。",

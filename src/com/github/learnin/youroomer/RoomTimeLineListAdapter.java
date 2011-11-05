@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.http.HttpStatus;
 
 import youroom4j.Entry;
+import youroom4j.YouRoom4JException;
 import youroom4j.YouRoomClient;
 import youroom4j.http.HttpResponseEntity;
 import youroom4j.http.HttpResponseHandler;
@@ -80,7 +81,8 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 							}
 						});
 				mUserImage.setImageBitmap(bitmap);
-			} catch (Exception e) {
+			} catch (YouRoom4JException e) {
+				// FIXME
 				System.out.println(e);
 			}
 

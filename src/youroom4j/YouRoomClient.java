@@ -48,12 +48,20 @@ public class YouRoomClient {
 	}
 
 	// TODO メソッドシグネチャのthrows句がこれでいいか要検討(他メソッドも)
-	public String oAuthRequestTokenRequest(String oauthCallbackUrl) throws IOException {
-		return oAuthClient.temporaryCredential(oauthCallbackUrl);
+	public String oAuthRequestTokenRequest(String oauthCallbackUrl) throws YouRoom4JException {
+		try {
+			return oAuthClient.temporaryCredential(oauthCallbackUrl);
+		} catch (IOException e) {
+			throw new YouRoom4JException(e);
+		}
 	}
 
-	public void oAuthAccessTokenRequest(String oauthVerifier) throws IOException {
-		oAuthClient.tokenCredential(oauthVerifier);
+	public void oAuthAccessTokenRequest(String oauthVerifier) throws YouRoom4JException {
+		try {
+			oAuthClient.tokenCredential(oauthVerifier);
+		} catch (IOException e) {
+			throw new YouRoom4JException(e);
+		}
 	}
 
 	// TODO 各種パラメータ(since, flat, page, read_state)対応
@@ -233,7 +241,7 @@ public class YouRoomClient {
 		return results;
 	}
 
-	public List<Group> getMyGroups() throws IOException {
+	public List<Group> getMyGroups() throws YouRoom4JException {
 		List<KeyValueString> paramList = new ArrayList<KeyValueString>();
 		paramList.add(new KeyValueString("format", "xml"));
 
@@ -244,14 +252,16 @@ public class YouRoomClient {
 			.addOAuthTokenCredentialToRequestEntity(requestEntity, "https://www.youroom.in/groups/my", paramList);
 
 		HttpRequestClient client = new HttpRequestClientImpl(5000, 10000, 0, Charset.forName("UTF-8"));
-		String responseContent = client.execute(requestEntity);
-		System.out.println(responseContent);
-		// FIXME
-		// AndroidならXmlPullParser、JDKならStAXでパースしてオブジェクトに詰めた結果を返すので、処理を外出しして切り替えが容易な形にしておく
-		List<Group> results = new ArrayList<Group>();
-		XmlPullParser parser = Xml.newPullParser();
 		ByteArrayInputStream byteArrayInputStream = null;
+		List<Group> results = new ArrayList<Group>();
+
 		try {
+			String responseContent = client.execute(requestEntity);
+			System.out.println(responseContent);
+			// FIXME
+			// AndroidならXmlPullParser、JDKならStAXでパースしてオブジェクトに詰めた結果を返すので、処理を外出しして切り替えが容易な形にしておく
+			XmlPullParser parser = Xml.newPullParser();
+
 			byteArrayInputStream = new ByteArrayInputStream(responseContent.getBytes("UTF-8"));
 			parser.setInput(byteArrayInputStream, "UTF-8");
 			int eventType = parser.getEventType();
@@ -290,10 +300,13 @@ public class YouRoomClient {
 				eventType = parser.next();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new YouRoom4JException(e);
 		} finally {
 			if (byteArrayInputStream != null) {
-				byteArrayInputStream.close();
+				try {
+					byteArrayInputStream.close();
+				} catch (IOException e) {
+				}
 			}
 		}
 		return results;
@@ -302,7 +315,7 @@ public class YouRoomClient {
 	// TODO 引数がurlでいいか(それとも、rとidにするか)は要検討。
 	// TODO このメソッドをクライアントから呼ぶのか、getTimeLine等このクラスの他メソッドから呼ぶのかは要検討。
 	// FIXME キャッシングを検討する。
-	public <T> T showPicture(String url, HttpResponseHandler<T> httpResponseHandler) throws IOException {
+	public <T> T showPicture(String url, HttpResponseHandler<T> httpResponseHandler) throws YouRoom4JException {
 		List<KeyValueString> paramList = new ArrayList<KeyValueString>();
 		paramList.add(new KeyValueString("format", "image"));
 
@@ -312,7 +325,11 @@ public class YouRoomClient {
 		oAuthClient.addOAuthTokenCredentialToRequestEntity(requestEntity, url, paramList);
 
 		HttpRequestClient client = new HttpRequestClientImpl(5000, 10000, 0, Charset.forName("UTF-8"));
-		return client.execute(requestEntity, httpResponseHandler);
+		try {
+			return client.execute(requestEntity, httpResponseHandler);
+		} catch (IOException e) {
+			throw new YouRoom4JException(e);
+		}
 	}
 
 }
