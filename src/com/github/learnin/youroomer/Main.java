@@ -1,7 +1,5 @@
 package com.github.learnin.youroomer;
 
-import java.io.Serializable;
-
 import youroom4j.YouRoom4JException;
 import youroom4j.YouRoomClient;
 import android.app.Activity;
@@ -13,11 +11,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
-// FIXME HomeTimeLineActivityから戻ったときに、またHomeTimeLineActivityへ行かないように制御が必要。
-// インテントフラグか、startActivityForResultで戻りを受けるコールバックメソッドでfinishするか
 public class Main extends Activity {
 
 	private static final String CALLBACK_URL = "com.github.learnin.youroomer.main://oauthcallback";
+	private static final int HOME_TIME_LINE_REQUEST_CODE = 0;
 
 	private YouRoomClient mYouRoomClient;
 
@@ -26,14 +23,6 @@ public class Main extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-
-		if (savedInstanceState != null) {
-			Serializable oAuthTokenCredential = savedInstanceState.getSerializable("OAuthTokenCredential");
-			if (oAuthTokenCredential != null) {
-				Intent intent = new Intent(getApplicationContext(), HomeTimeLineActivity.class);
-				startActivity(intent);
-			}
-		}
 	}
 
 	@Override
@@ -43,7 +32,7 @@ public class Main extends Activity {
 		if (sharedPreferences.getString("token", null) != null
 			&& sharedPreferences.getString("tokenSecret", null) != null) {
 			Intent intent = new Intent(getApplicationContext(), HomeTimeLineActivity.class);
-			startActivity(intent);
+			startActivityForResult(intent, HOME_TIME_LINE_REQUEST_CODE);
 		} else {
 			mYouRoomClient = YouRoomClientBuilder.createYouRoomClient();
 		}
@@ -82,7 +71,7 @@ public class Main extends Activity {
 					.commit();
 
 				Intent intent2 = new Intent(getApplicationContext(), HomeTimeLineActivity.class);
-				startActivity(intent2);
+				startActivityForResult(intent2, HOME_TIME_LINE_REQUEST_CODE);
 			} catch (YouRoom4JException e) {
 				// FIXME
 				showToast("YouRoomアクセスでエラーが発生しました。");
@@ -91,14 +80,14 @@ public class Main extends Activity {
 	}
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		saveInstanceState(outState);
-	}
-
-	private void saveInstanceState(Bundle outState) {
-		if (mYouRoomClient != null) {
-			outState.putSerializable("OAuthTokenCredential", mYouRoomClient.getOAuthTokenCredential());
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		switch (requestCode) {
+		case HOME_TIME_LINE_REQUEST_CODE:
+			finish();
+			break;
+		default:
+			break;
 		}
 	}
 
