@@ -354,6 +354,7 @@ public class HomeTimeLineActivity extends Activity {
 					return homeTimeLineActivity.mYouRoomClient.getHomeTimeLine();
 				} catch (YouRoom4JException e) {
 					// FIXME
+					e.printStackTrace();
 					Toast.makeText(
 						homeTimeLineActivity.getApplicationContext(),
 						"YouRoomアクセスでエラーが発生しました。",

@@ -1,6 +1,8 @@
 package youroom4j;
 
-public class Attachment {
+import java.io.Serializable;
+
+public class Attachment implements Serializable {
 
 	private String originalFilename;
 	private String contentType;

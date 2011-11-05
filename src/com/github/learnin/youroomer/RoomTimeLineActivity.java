@@ -284,6 +284,7 @@ public class RoomTimeLineActivity extends Activity {
 					return roomTimeLineActivity.mYouRoomClient.getRoomTimeLine(roomTimeLineActivity.mGroupToParam);
 				} catch (YouRoom4JException e) {
 					// FIXME
+					e.printStackTrace();
 					Toast.makeText(
 						roomTimeLineActivity.getApplicationContext(),
 						"YouRoomアクセスでエラーが発生しました。",
