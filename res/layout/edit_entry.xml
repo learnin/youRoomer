@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" android:layout_height="fill_parent"
+	android:orientation="vertical">
+	<EditText android:id="@+id/entry_edit_text"
+		android:layout_width="fill_parent" android:layout_height="fill_parent"
+		android:layout_weight="1" android:inputType="textMultiLine" />
+	<LinearLayout android:layout_width="fill_parent"
+		android:layout_height="wrap_content" android:layout_alignParentBottom="true"
+		android:padding="5dip">
+		<Button android:id="@+id/create_entry_button"
+			android:layout_width="wrap_content" android:layout_height="wrap_content"
+			android:layout_weight="1" android:layout_margin="5dip"
+			android:text="@string/create_entry" />
+		<Button android:id="@+id/cancel_button" android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:layout_weight="1"
+			android:layout_margin="5dip" android:text="@string/cancel" />
+	</LinearLayout>
+</LinearLayout>

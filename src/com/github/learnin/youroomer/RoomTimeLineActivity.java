@@ -51,6 +51,15 @@ public class RoomTimeLineActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		Intent intent = getIntent();
+		if (intent != null) {
+			CharSequence groupToParam = intent.getCharSequenceExtra("GROUP_TO_PARAM");
+			if (groupToParam != null) {
+				mGroupToParam = groupToParam.toString();
+			}
+		}
+
 		setContentView(R.layout.room_time_line);
 		setupView(savedInstanceState);
 
@@ -89,7 +98,9 @@ public class RoomTimeLineActivity extends Activity {
 		mCreateEntry = (Button) findViewById(R.id.create_entry_button);
 		mCreateEntry.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				// FIXME 投稿画面へインテントする
+				Intent intent = new Intent(getApplicationContext(), CreateEntryActivity.class);
+				intent.putExtra("GROUP_TO_PARAM", mGroupToParam);
+				startActivity(intent);
 			}
 		});
 	}
@@ -253,6 +264,7 @@ public class RoomTimeLineActivity extends Activity {
 			mGetTimeLineTask.cancel(true);
 			mGetTimeLineTask = null;
 		}
+		mReload.setEnabled(true);
 	}
 
 	/**
@@ -289,6 +301,7 @@ public class RoomTimeLineActivity extends Activity {
 						roomTimeLineActivity.getApplicationContext(),
 						"YouRoomアクセスでエラーが発生しました。",
 						Toast.LENGTH_LONG).show();
+					roomTimeLineActivity.mReload.setEnabled(true);
 				}
 			}
 			return null;

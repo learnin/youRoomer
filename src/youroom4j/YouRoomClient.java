@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.http.HttpStatus;
 import org.xmlpull.v1.XmlPullParser;
 
 import youroom4j.http.HttpRequestClient;
@@ -138,7 +139,7 @@ public class YouRoomClient {
 							entry.setRootId(Long.parseLong(parser.nextText()));
 						} else if ("id".equals(tag)) {
 							entry.setId(Long.parseLong(parser.nextText()));
-						} else if ("can-update".equals(tag)) {
+						} else if ("can-update".equals(tag) && !"true".equals(parser.getAttributeValue(null, "nil"))) {
 							entry.setCanUpdate(Boolean.parseBoolean(parser.nextText()));
 						} else if ("level".equals(tag)) {
 							entry.setLevel(Integer.parseInt(parser.nextText()));
@@ -327,6 +328,31 @@ public class YouRoomClient {
 		HttpRequestClient client = new HttpRequestClientImpl(5000, 10000, 0, Charset.forName("UTF-8"));
 		try {
 			return client.execute(requestEntity, httpResponseHandler);
+		} catch (IOException e) {
+			throw new YouRoom4JException(e);
+		}
+	}
+
+	public Entry createEntry(String groupParam, String content, Long parentId) throws YouRoom4JException {
+		List<KeyValueString> paramList = new ArrayList<KeyValueString>();
+		paramList.add(new KeyValueString("format", "xml"));
+		paramList.add(new KeyValueString("entry[content]", content));
+		if (parentId != null) {
+			paramList.add(new KeyValueString("entry[parent_id]", parentId.toString()));
+		}
+
+		String url = "https://www.youroom.in/r/" + groupParam + "/entries";
+		HttpRequestEntity requestEntity = new HttpRequestEntity();
+		requestEntity.setUrl(url);
+		requestEntity.setMethod(HttpRequestEntity.POST);
+		requestEntity.setParams(paramList);
+		oAuthClient.addOAuthTokenCredentialToRequestEntity(requestEntity, url, paramList);
+
+		HttpRequestClient client = new HttpRequestClientImpl(5000, 10000, 0, Charset.forName("UTF-8"));
+		try {
+			String responseContent = client.execute(requestEntity, HttpStatus.SC_CREATED);
+			System.out.println(responseContent);
+			return parseEntries(responseContent).get(0);
 		} catch (IOException e) {
 			throw new YouRoom4JException(e);
 		}

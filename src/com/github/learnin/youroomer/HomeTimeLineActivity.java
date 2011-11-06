@@ -293,6 +293,7 @@ public class HomeTimeLineActivity extends Activity {
 			mGetTimeLineTask.cancel(true);
 			mGetTimeLineTask = null;
 		}
+		mReload.setEnabled(true);
 	}
 
 	private void getRoomList(Dialog dialog) {
@@ -359,6 +360,7 @@ public class HomeTimeLineActivity extends Activity {
 						homeTimeLineActivity.getApplicationContext(),
 						"YouRoomアクセスでエラーが発生しました。",
 						Toast.LENGTH_LONG).show();
+					homeTimeLineActivity.mReload.setEnabled(true);
 				}
 			}
 			return null;
