@@ -4,8 +4,9 @@ import java.io.IOException;
 
 public interface HttpRequestClient {
 
-	public <T> T execute(HttpRequestEntity requestEntity,
-			HttpResponseHandler<T> responseHandler) throws IOException;
+	public <T> T execute(HttpRequestEntity requestEntity, HttpResponseHandler<T> responseHandler) throws IOException;
+
+	public String execute(HttpRequestEntity requestEntity, int expectHttpStatusCode) throws IOException;
 
 	public String execute(HttpRequestEntity requestEntity) throws IOException;
 }

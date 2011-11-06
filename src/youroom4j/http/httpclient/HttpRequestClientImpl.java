@@ -5,13 +5,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -19,6 +22,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.CoreConnectionPNames;
 
 import youroom4j.KeyValueString;
@@ -79,7 +83,16 @@ public class HttpRequestClientImpl implements HttpRequestClient {
 			}
 		}
 
-		// FIXME param, bodyのセット実装
+		List<KeyValueString> paramList = requestEntity.getParams();
+		if (requestEntity.getMethod() == HttpRequestEntity.POST && paramList != null && !paramList.isEmpty()) {
+			List<NameValuePair> params = new ArrayList<NameValuePair>();
+			for (KeyValueString keyValueString : paramList) {
+				params.add(new BasicNameValuePair(keyValueString.getKey(), keyValueString.getValue()));
+			}
+			((HttpPost) httpRequestBase).setEntity(new UrlEncodedFormEntity(params));
+		}
+
+		// TODO body(key=value&...形式でないデータのPOST)のセット実装
 
 		DefaultHttpClient httpClient = null;
 		try {
@@ -138,10 +151,10 @@ public class HttpRequestClientImpl implements HttpRequestClient {
 		return httpClient;
 	}
 
-	public String execute(HttpRequestEntity requestEntity) throws IOException {
+	public String execute(HttpRequestEntity requestEntity, final int expectHttpStatusCode) throws IOException {
 		return execute(requestEntity, new HttpResponseHandler<String>() {
 			public String handleResponse(HttpResponseEntity responseEntity) throws IOException {
-				if (responseEntity.getStatusCode() == HttpStatus.SC_OK) {
+				if (responseEntity.getStatusCode() == expectHttpStatusCode) {
 					BufferedReader br = null;
 					try {
 						br = new BufferedReader(new InputStreamReader(responseEntity.getContent(), charset));
@@ -170,4 +183,9 @@ public class HttpRequestClientImpl implements HttpRequestClient {
 			}
 		});
 	}
+
+	public String execute(HttpRequestEntity requestEntity) throws IOException {
+		return execute(requestEntity, HttpStatus.SC_OK);
+	}
+
 }
