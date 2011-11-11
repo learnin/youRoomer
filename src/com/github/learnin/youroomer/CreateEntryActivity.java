@@ -9,23 +9,28 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnKeyListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
-// TODO 入力文字数カウント実装
-// TODO 未入力・文字数オーバー時は投稿ボタンを押せなくする
 public class CreateEntryActivity extends Activity {
+
+	private static final int MAX_INPUT_LENGTH = 280;
 
 	private YouRoomClient mYouRoomClient;
 	private CreateEntryTask mCreateEntryTask;
 	private String mGroupToParam = null;
 
 	private EditText mEntryEditText;
+	private TextView mInputLength;
 	private Button mCreateEntryButton;
 	private Button mCancelButton;
 
@@ -46,6 +51,15 @@ public class CreateEntryActivity extends Activity {
 
 	private void setupView(final Bundle savedInstanceState) {
 		mEntryEditText = (EditText) findViewById(R.id.entry_edit_text);
+		mEntryEditText.setOnKeyListener(new OnKeyListener() {
+			@Override
+			public boolean onKey(View v, int keyCode, KeyEvent event) {
+				countInputLength();
+				return false;
+			}
+		});
+
+		mInputLength = (TextView) findViewById(R.id.input_length);
 
 		mCreateEntryButton = (Button) findViewById(R.id.create_entry_button);
 		mCreateEntryButton.setOnClickListener(new OnClickListener() {
@@ -71,6 +85,27 @@ public class CreateEntryActivity extends Activity {
 			if (groupToParam != null) {
 				mGroupToParam = groupToParam.toString();
 			}
+		}
+		countInputLength();
+	}
+
+	/**
+	 * 入力された文字数をカウントし表示します。<br>
+	 */
+	private void countInputLength() {
+		// 本来はサロゲートペアや合成文字を考慮して文字数カウントはjava.text.BreakIteratorでやるべきだが、少なくともyouRoomのWebフォームはサロゲートペアを
+		// 考慮していないので念のため、あえて考慮せずにカウントする。
+		int inputLength = mEntryEditText.getText().toString().length();
+		mInputLength.setText(String.valueOf(MAX_INPUT_LENGTH - inputLength));
+		if (inputLength == 0) {
+			mInputLength.setTextColor(Color.WHITE);
+			mCreateEntryButton.setEnabled(false);
+		} else if (inputLength > 0 && inputLength <= MAX_INPUT_LENGTH) {
+			mInputLength.setTextColor(Color.WHITE);
+			mCreateEntryButton.setEnabled(true);
+		} else {
+			mInputLength.setTextColor(Color.RED);
+			mCreateEntryButton.setEnabled(false);
 		}
 	}
 
