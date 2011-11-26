@@ -117,7 +117,7 @@ public class CreateEntryActivity extends Activity {
 		}
 	}
 
-	public void afterCreateEntry() {
+	private void afterCreateEntry() {
 		Toast.makeText(getApplicationContext(), "投稿しました。", Toast.LENGTH_SHORT).show();
 		finish();
 	}

@@ -12,7 +12,6 @@ import android.widget.TextView;
 public class ContextMenuItemListAdapter extends ArrayAdapter<MenuItem> {
 
 	private LayoutInflater mLayoutInflater;
-	private TextView mText;
 
 	public ContextMenuItemListAdapter(Context context, List<MenuItem> menuItemList) {
 		super(context, 0, menuItemList);
@@ -21,17 +20,31 @@ public class ContextMenuItemListAdapter extends ArrayAdapter<MenuItem> {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
+		MenuItem menuItem = this.getItem(position);
+		if (menuItem == null) {
+			if (convertView == null) {
+				return mLayoutInflater.inflate(R.layout.context_menu_item_row, null);
+			}
+			return convertView;
+		}
+
 		View view = convertView;
+		ViewHolder holder = new ViewHolder();
 
 		if (convertView == null) {
 			view = mLayoutInflater.inflate(R.layout.context_menu_item_row, null);
+			holder.mText = (TextView) view.findViewById(R.id.text);
+			view.setTag(holder);
+		} else {
+			holder = (ViewHolder) view.getTag();
 		}
 
-		MenuItem menuItem = this.getItem(position);
-		if (menuItem != null) {
-			mText = (TextView) view.findViewById(R.id.text);
-			mText.setText(menuItem.getText());
-		}
+		holder.mText.setText(menuItem.getText());
 		return view;
 	}
+
+	private static class ViewHolder {
+		TextView mText;
+	}
+
 }

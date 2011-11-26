@@ -27,13 +27,7 @@ import android.widget.TextView;
 public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 
 	private LayoutInflater mLayoutInflater;
-	private TextView mUsername;
-	private TextView mCreatedAt;
-	private TextView mContent;
-	private TextView mCommentCount;
-	private ImageView mUserImage;
 	private YouRoomClient mYouRoomClient;
-	private TextView mHasRead;
 
 	public RoomTimeLineListAdapter(Context context, List<Entry> entryList) {
 		super(context, 0, entryList);
@@ -48,69 +42,87 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
+		Entry entry = this.getItem(position);
+		if (entry == null) {
+			if (convertView == null) {
+				return mLayoutInflater.inflate(R.layout.entry_row, null);
+			}
+			return convertView;
+		}
+
 		View view = convertView;
+		ViewHolder holder = new ViewHolder();
 
 		if (convertView == null) {
 			view = mLayoutInflater.inflate(R.layout.entry_row, null);
+			holder.mUserImage = (ImageView) view.findViewById(R.id.user_image);
+			holder.mUsername = (TextView) view.findViewById(R.id.username);
+			holder.mHasRead = (TextView) view.findViewById(R.id.has_read);
+			holder.mCreatedAt = (TextView) view.findViewById(R.id.created_at);
+			holder.mContent = (TextView) view.findViewById(R.id.content);
+			holder.mCommentCount = (TextView) view.findViewById(R.id.comment_count);
+			view.setTag(holder);
+		} else {
+			holder = (ViewHolder) view.getTag();
 		}
 
-		Entry entry = this.getItem(position);
-		if (entry != null) {
-			mUserImage = (ImageView) view.findViewById(R.id.user_image);
-
-			try {
-				// FIXME このままだとスクロールの度にWebAPIリクエストで画像を取りに行くので遅い。
-				Bitmap bitmap =
-					mYouRoomClient.showPicture(
-						entry.getParticipation().getUserImageURI(),
-						new HttpResponseHandler<Bitmap>() {
-							@Override
-							public Bitmap handleResponse(HttpResponseEntity responseEntity) throws IOException {
-								if (responseEntity.getStatusCode() == HttpStatus.SC_OK) {
-									InputStream is = null;
-									try {
-										is = responseEntity.getContent();
-										return BitmapFactory.decodeStream(is);
-									} finally {
-										if (is != null) {
-											is.close();
-										}
+		try {
+			// FIXME このままだとスクロールの度にWebAPIリクエストで画像を取りに行くので遅い。
+			Bitmap bitmap =
+				mYouRoomClient.showPicture(
+					entry.getParticipation().getUserImageURI(),
+					new HttpResponseHandler<Bitmap>() {
+						@Override
+						public Bitmap handleResponse(HttpResponseEntity responseEntity) throws IOException {
+							if (responseEntity.getStatusCode() == HttpStatus.SC_OK) {
+								InputStream is = null;
+								try {
+									is = responseEntity.getContent();
+									return BitmapFactory.decodeStream(is);
+								} finally {
+									if (is != null) {
+										is.close();
 									}
 								}
-								return null;
 							}
-						});
-				mUserImage.setImageBitmap(bitmap);
-			} catch (YouRoom4JException e) {
-				// FIXME
-				System.out.println(e);
+							return null;
+						}
+					});
+			holder.mUserImage.setImageBitmap(bitmap);
+		} catch (YouRoom4JException e) {
+			// FIXME
+			System.out.println(e);
+		}
+
+		holder.mUsername.setText(entry.getParticipation().getName());
+
+		// FIXME 未読表示仮実装。画像にする
+		if (entry.hasRead()) {
+			holder.mHasRead.setVisibility(View.INVISIBLE);
+		}
+
+		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		holder.mCreatedAt.setText(df.format(entry.getCreatedAt()));
+
+		holder.mContent.setText(entry.getContent());
+
+		if (entry.getChildren() != null) {
+			String mCommentCountText = entry.getChildren().size() + " comment";
+			if (entry.getChildren().size() > 1) {
+				mCommentCountText += "s";
 			}
-
-			mUsername = (TextView) view.findViewById(R.id.username);
-			mUsername.setText(entry.getParticipation().getName());
-
-			// FIXME 未読表示仮実装。画像にする
-			if (entry.hasRead()) {
-				mHasRead = (TextView) view.findViewById(R.id.has_read);
-				mHasRead.setVisibility(View.INVISIBLE);
-			}
-
-			mCreatedAt = (TextView) view.findViewById(R.id.created_at);
-			SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-			mCreatedAt.setText(df.format(entry.getCreatedAt()));
-
-			mContent = (TextView) view.findViewById(R.id.content);
-			mContent.setText(entry.getContent());
-
-			if (entry.getChildren() != null) {
-				mCommentCount = (TextView) view.findViewById(R.id.comment_count);
-				String mCommentCountText = entry.getChildren().size() + " comment";
-				if (entry.getChildren().size() > 1) {
-					mCommentCountText += "s";
-				}
-				mCommentCount.setText(mCommentCountText);
-			}
+			holder.mCommentCount.setText(mCommentCountText);
 		}
 		return view;
 	}
+
+	private static class ViewHolder {
+		ImageView mUserImage;
+		TextView mUsername;
+		TextView mHasRead;
+		TextView mCreatedAt;
+		TextView mContent;
+		TextView mCommentCount;
+	}
+
 }

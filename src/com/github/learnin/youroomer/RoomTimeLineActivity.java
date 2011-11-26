@@ -262,8 +262,8 @@ public class RoomTimeLineActivity extends Activity {
 	private void cancelGetTimeLineTask() {
 		if (mGetTimeLineTask != null && mGetTimeLineTask.getStatus() == AsyncTask.Status.RUNNING) {
 			mGetTimeLineTask.cancel(true);
-			mGetTimeLineTask = null;
 		}
+		mGetTimeLineTask = null;
 		mReload.setEnabled(true);
 	}
 
@@ -272,7 +272,7 @@ public class RoomTimeLineActivity extends Activity {
 	 *
 	 * @param entryList エントリ一覧
 	 */
-	public void showEntryList(List<Entry> entryList) {
+	private void showEntryList(List<Entry> entryList) {
 		mListView.setAdapter(new RoomTimeLineListAdapter(getApplicationContext(), entryList));
 		// FIXME 進捗バー
 	}

@@ -1,6 +1,5 @@
 package com.github.learnin.youroomer;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -291,8 +290,8 @@ public class HomeTimeLineActivity extends Activity {
 	private void cancelGetTimeLineTask() {
 		if (mGetTimeLineTask != null && mGetTimeLineTask.getStatus() == AsyncTask.Status.RUNNING) {
 			mGetTimeLineTask.cancel(true);
-			mGetTimeLineTask = null;
 		}
+		mGetTimeLineTask = null;
 		mReload.setEnabled(true);
 	}
 
@@ -306,8 +305,8 @@ public class HomeTimeLineActivity extends Activity {
 	private void cancelGetRoomListTask() {
 		if (mGetRoomListTask != null && mGetRoomListTask.getStatus() == AsyncTask.Status.RUNNING) {
 			mGetRoomListTask.cancel(true);
-			mGetRoomListTask = null;
 		}
+		mGetRoomListTask = null;
 	}
 
 	/**
@@ -315,7 +314,7 @@ public class HomeTimeLineActivity extends Activity {
 	 *
 	 * @param entryList エントリ一覧
 	 */
-	public void showEntryList(List<Entry> entryList) {
+	private void showEntryList(List<Entry> entryList) {
 		mListView.setAdapter(new HomeTimeLineListAdapter(getApplicationContext(), entryList));
 		// FIXME 進捗バー
 	}
@@ -326,7 +325,7 @@ public class HomeTimeLineActivity extends Activity {
 	 * @param dialog ダイアログ
 	 * @param groupList ルーム一覧
 	 */
-	public void showRoomListOnDialog(Dialog dialog, List<Group> groupList) {
+	private void showRoomListOnDialog(Dialog dialog, List<Group> groupList) {
 		ListView listView = (ListView) dialog.findViewById(R.id.room_list);
 		listView.setAdapter(new RoomListAdapter(getApplicationContext(), groupList));
 		ProgressBar progressBar = (ProgressBar) dialog.findViewById(R.id.progressBar);

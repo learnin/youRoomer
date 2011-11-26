@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.apache.http.HttpStatus;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import youroom4j.http.HttpRequestClient;
 import youroom4j.http.HttpRequestEntity;
@@ -16,7 +17,6 @@ import youroom4j.http.HttpResponseHandler;
 import youroom4j.http.httpclient.HttpRequestClientImpl;
 import youroom4j.oauth.OAuthClient;
 import youroom4j.oauth.OAuthTokenCredential;
-import android.util.Xml;
 
 //TODO 流れるようなインターフェースにしてはどうか？
 // FIXME 抽象クラスにして、サブクラスとしてAndroidYouRoomClientをつくる。インスタンス生成はYouRoomClientFactoryで。
@@ -110,10 +110,10 @@ public class YouRoomClient {
 	// TODO Android以外はStAXでパースする
 	private List<Entry> parseEntries(String responseContent) throws YouRoom4JException {
 		List<Entry> results = new ArrayList<Entry>();
-		XmlPullParser parser = Xml.newPullParser();
 		ByteArrayInputStream byteArrayInputStream = null;
 		try {
 			byteArrayInputStream = new ByteArrayInputStream(responseContent.getBytes("UTF-8"));
+			XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
 			parser.setInput(byteArrayInputStream, "UTF-8");
 			int eventType = parser.getEventType();
 			String parentTag = null;
@@ -261,7 +261,7 @@ public class YouRoomClient {
 			System.out.println(responseContent);
 			// FIXME
 			// AndroidならXmlPullParser、JDKならStAXでパースしてオブジェクトに詰めた結果を返すので、処理を外出しして切り替えが容易な形にしておく
-			XmlPullParser parser = Xml.newPullParser();
+			XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
 
 			byteArrayInputStream = new ByteArrayInputStream(responseContent.getBytes("UTF-8"));
 			parser.setInput(byteArrayInputStream, "UTF-8");
