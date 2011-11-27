@@ -103,11 +103,14 @@ public class HttpRequestClientImpl implements HttpRequestClient {
 			for (int i = 1, n = retryCount + 1; i <= n; i++) {
 				try {
 					result = httpClient.execute(httpRequestBase, new ResponseHandler<T>() {
-						public T handleResponse(HttpResponse httpresponse) throws ClientProtocolException, IOException {
-							System.out.println(httpresponse.getStatusLine());
+						public T handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+							if (response == null || response.getStatusLine() == null || response.getEntity() == null) {
+								throw new IOException("response is null.");
+							}
+							System.out.println(response.getStatusLine());
 							HttpResponseEntity responseEntity = new HttpResponseEntity();
-							responseEntity.setStatusCode(httpresponse.getStatusLine().getStatusCode());
-							responseEntity.setContent(httpresponse.getEntity().getContent());
+							responseEntity.setStatusCode(response.getStatusLine().getStatusCode());
+							responseEntity.setContent(response.getEntity().getContent());
 							return responseHandler.handleResponse(responseEntity);
 						}
 					});
