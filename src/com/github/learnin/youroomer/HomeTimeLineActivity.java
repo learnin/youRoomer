@@ -60,6 +60,7 @@ public class HomeTimeLineActivity extends Activity {
 		setContentView(R.layout.home_time_line);
 		setupView(savedInstanceState);
 
+		// FIXME YouRoomClient使用箇所で毎回以下を書くのは面倒。共通化するなり保持させるなりする。
 		SharedPreferences sharedPreferences = getSharedPreferences("oauth", Context.MODE_PRIVATE);
 		OAuthTokenCredential oAuthTokenCredential = new OAuthTokenCredential();
 		oAuthTokenCredential.setToken(sharedPreferences.getString("token", ""));
@@ -351,6 +352,7 @@ public class HomeTimeLineActivity extends Activity {
 			final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
 			if (homeTimeLineActivity != null) {
 				try {
+					// FIXME ページング対応
 					return homeTimeLineActivity.mYouRoomClient.getHomeTimeLine();
 				} catch (YouRoom4JException e) {
 					// FIXME
@@ -408,6 +410,7 @@ public class HomeTimeLineActivity extends Activity {
 			if (homeTimeLineActivity != null) {
 				try {
 					return homeTimeLineActivity.mYouRoomClient.getMyGroups();
+				// FIXME YouRoomClient実行時のRuntimeException発生時の考慮が必要。YouRoom4J側ではcatchしないので呼び出し側で個別にcatchするか、例外ハンドラで実装するか
 				} catch (YouRoom4JException e) {
 					// FIXME
 					e.printStackTrace();
