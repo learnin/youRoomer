@@ -1,22 +1,14 @@
 package com.github.learnin.youroomer;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
-import org.apache.http.HttpStatus;
-
 import youroom4j.Entry;
-import youroom4j.YouRoom4JException;
 import youroom4j.YouRoomClient;
-import youroom4j.http.HttpResponseEntity;
-import youroom4j.http.HttpResponseHandler;
 import youroom4j.oauth.OAuthTokenCredential;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,34 +60,13 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 			holder = (ViewHolder) view.getTag();
 		}
 
-		try {
-			// FIXME このままだとスクロールの度にWebAPIリクエストで画像を取りに行くので遅い。
-			String userImageURI = entry.getParticipation().getUserImageURI();
-			Bitmap bitmap = UserImageCache.getUserImage(userImageURI);
-			if (bitmap == null) {
-				bitmap = mYouRoomClient.showPicture(userImageURI, new HttpResponseHandler<Bitmap>() {
-					@Override
-					public Bitmap handleResponse(HttpResponseEntity responseEntity) throws IOException {
-						if (responseEntity.getStatusCode() == HttpStatus.SC_OK) {
-							InputStream is = null;
-							try {
-								is = responseEntity.getContent();
-								return BitmapFactory.decodeStream(is);
-							} finally {
-								if (is != null) {
-									is.close();
-								}
-							}
-						}
-						return null;
-					}
-				});
-				UserImageCache.setUserImage(userImageURI, bitmap);
-			}
+		String userImageURI = entry.getParticipation().getUserImageURI();
+		Bitmap bitmap = UserImageCache.getUserImage(userImageURI);
+		if (bitmap == null) {
+			GetUserImageTask getUserImageTask = new GetUserImageTask(mYouRoomClient, holder.mUserImage);
+			getUserImageTask.execute(userImageURI);
+		} else {
 			holder.mUserImage.setImageBitmap(bitmap);
-		} catch (YouRoom4JException e) {
-			// FIXME
-			System.out.println(e);
 		}
 
 		holder.mUsername.setText(entry.getParticipation().getName());
