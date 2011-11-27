@@ -21,7 +21,7 @@ public class UserImageCache {
 		}
 	}
 
-	public void clear() {
+	public static synchronized void clear() {
 		cache.clear();
 	}
 

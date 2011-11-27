@@ -38,6 +38,8 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 		oAuthTokenCredential.setTokenSecret(sharedPreferences.getString("tokenSecret", ""));
 		mYouRoomClient = YouRoomClientBuilder.createYouRoomClient();
 		mYouRoomClient.setOAuthTokenCredential(oAuthTokenCredential);
+
+		UserImageCache.clear();
 	}
 
 	@Override
