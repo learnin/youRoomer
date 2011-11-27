@@ -68,26 +68,28 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 
 		try {
 			// FIXME このままだとスクロールの度にWebAPIリクエストで画像を取りに行くので遅い。
-			Bitmap bitmap =
-				mYouRoomClient.showPicture(
-					entry.getParticipation().getUserImageURI(),
-					new HttpResponseHandler<Bitmap>() {
-						@Override
-						public Bitmap handleResponse(HttpResponseEntity responseEntity) throws IOException {
-							if (responseEntity.getStatusCode() == HttpStatus.SC_OK) {
-								InputStream is = null;
-								try {
-									is = responseEntity.getContent();
-									return BitmapFactory.decodeStream(is);
-								} finally {
-									if (is != null) {
-										is.close();
-									}
+			String userImageURI = entry.getParticipation().getUserImageURI();
+			Bitmap bitmap = UserImageCache.getUserImage(userImageURI);
+			if (bitmap == null) {
+				bitmap = mYouRoomClient.showPicture(userImageURI, new HttpResponseHandler<Bitmap>() {
+					@Override
+					public Bitmap handleResponse(HttpResponseEntity responseEntity) throws IOException {
+						if (responseEntity.getStatusCode() == HttpStatus.SC_OK) {
+							InputStream is = null;
+							try {
+								is = responseEntity.getContent();
+								return BitmapFactory.decodeStream(is);
+							} finally {
+								if (is != null) {
+									is.close();
 								}
 							}
-							return null;
 						}
-					});
+						return null;
+					}
+				});
+				UserImageCache.setUserImage(userImageURI, bitmap);
+			}
 			holder.mUserImage.setImageBitmap(bitmap);
 		} catch (YouRoom4JException e) {
 			// FIXME

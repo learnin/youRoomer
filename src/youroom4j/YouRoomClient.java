@@ -313,9 +313,6 @@ public class YouRoomClient {
 		return results;
 	}
 
-	// TODO 引数がurlでいいか(それとも、rとidにするか)は要検討。
-	// TODO このメソッドをクライアントから呼ぶのか、getTimeLine等このクラスの他メソッドから呼ぶのかは要検討。
-	// FIXME キャッシングを検討する。
 	public <T> T showPicture(String url, HttpResponseHandler<T> httpResponseHandler) throws YouRoom4JException {
 		List<KeyValueString> paramList = new ArrayList<KeyValueString>();
 		paramList.add(new KeyValueString("format", "image"));
