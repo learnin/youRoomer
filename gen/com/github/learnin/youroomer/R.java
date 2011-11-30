@@ -59,5 +59,6 @@ public final class R {
         public static final int login=0x7f040002;
         public static final int reload=0x7f040003;
         public static final int show_room_list=0x7f040004;
+        public static final int title_of_action_send_intent=0x7f040009;
     }
 }

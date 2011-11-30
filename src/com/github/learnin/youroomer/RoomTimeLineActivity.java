@@ -74,7 +74,6 @@ public class RoomTimeLineActivity extends Activity {
 	private void setupView(final Bundle savedInstanceState) {
 		mListView = (ListView) findViewById(R.id.entry_list);
 		mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				ListView listView = (ListView) parent;
@@ -176,7 +175,7 @@ public class RoomTimeLineActivity extends Activity {
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 					ListView listView = (ListView) parent;
 					MenuItem menuItem = (MenuItem) listView.getItemAtPosition(position);
-					Toast.makeText(getApplicationContext(), menuItem.getText(), Toast.LENGTH_LONG).show();
+					Entry entry = menuItem.getEntry();
 					switch (menuItem.getId()) {
 					case MENU_ITEM_EDIT_ID:
 						// FIXME 編集画面へインテント
@@ -191,7 +190,20 @@ public class RoomTimeLineActivity extends Activity {
 						// FIXME コメント入力画面へインテント
 						break;
 					case MENU_ITEM_SHARE_ID:
-						// FIXME 共有インテント
+						if (entry != null) {
+							String content = entry.getContent();
+							Intent intent = new Intent(Intent.ACTION_SEND);
+							intent.setType("text/plain");
+							intent.putExtra(Intent.EXTRA_TEXT, content);
+							try {
+								startActivity(Intent.createChooser(
+									intent,
+									getString(R.string.title_of_action_send_intent)));
+							} catch (android.content.ActivityNotFoundException e) {
+								// FIXME
+								// 該当するActivityがないときの処理。事前にあるか調べてからインテントする方がよいか？
+							}
+						}
 						break;
 					default:
 						break;
@@ -209,32 +221,40 @@ public class RoomTimeLineActivity extends Activity {
 		switch (id) {
 		case DIALOG_CONTEXT_MENU_ID:
 			List<MenuItem> menuItemList = new ArrayList<MenuItem>();
+			Entry entry = null;
+			if (bundle != null && bundle.getSerializable("ENTRY") != null) {
+				entry = (Entry) bundle.getSerializable("ENTRY");
+			}
 			MenuItem menuItem = new MenuItem();
 			menuItem.setId(MENU_ITEM_EDIT_ID);
 			menuItem.setText("編集する");
+			menuItem.setEntry(entry);
 			menuItemList.add(menuItem);
+
 			MenuItem menuItem2 = new MenuItem();
 			menuItem2.setId(MENU_ITEM_DELETE_ID);
 			menuItem2.setText("削除する");
+			menuItem2.setEntry(entry);
 			menuItemList.add(menuItem2);
 
-			if (bundle != null && bundle.getSerializable("ENTRY") != null) {
-				Entry entry = (Entry) bundle.getSerializable("ENTRY");
-				if (entry.getChildren() != null && !entry.getChildren().isEmpty()) {
-					MenuItem menuItem3 = new MenuItem();
-					menuItem3.setId(MENU_ITEM_SHOW_COMMENT_ID);
-					menuItem3.setText("コメントを見る");
-					menuItemList.add(menuItem3);
-				}
+			if (entry != null && entry.getChildren() != null && !entry.getChildren().isEmpty()) {
+				MenuItem menuItem3 = new MenuItem();
+				menuItem3.setId(MENU_ITEM_SHOW_COMMENT_ID);
+				menuItem3.setText("コメントを見る");
+				menuItem3.setEntry(entry);
+				menuItemList.add(menuItem3);
 			}
 
 			MenuItem menuItem4 = new MenuItem();
 			menuItem4.setId(MENU_ITEM_DO_COMMENT_ID);
 			menuItem4.setText("コメントする");
+			menuItem4.setEntry(entry);
 			menuItemList.add(menuItem4);
+
 			MenuItem menuItem5 = new MenuItem();
 			menuItem5.setId(MENU_ITEM_SHARE_ID);
 			menuItem5.setText("このエントリを共有する");
+			menuItem5.setEntry(entry);
 			menuItemList.add(menuItem5);
 
 			ListView contextMenuItemListView = (ListView) dialog.findViewById(R.id.context_menu_item_list);
