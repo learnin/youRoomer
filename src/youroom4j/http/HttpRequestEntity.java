@@ -9,6 +9,7 @@ public class HttpRequestEntity {
 	// FIXME Enum化
 	public static final int GET = 1;
 	public static final int POST = 2;
+	public static final int PUT = 3;
 
 	private String url;
 	private int method;

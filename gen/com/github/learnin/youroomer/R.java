@@ -51,7 +51,7 @@ public final class R {
     }
     public static final class string {
         public static final int app_name=0x7f040001;
-        public static final int cancel=0x7f040008;
+        public static final int cancel=0x7f040009;
         public static final int close=0x7f040006;
         public static final int create_entry=0x7f040007;
         public static final int dialog_room_list_title=0x7f040005;
@@ -59,6 +59,7 @@ public final class R {
         public static final int login=0x7f040002;
         public static final int reload=0x7f040003;
         public static final int show_room_list=0x7f040004;
-        public static final int title_of_action_send_intent=0x7f040009;
+        public static final int title_of_action_send_intent=0x7f04000a;
+        public static final int update_entry=0x7f040008;
     }
 }

@@ -378,11 +378,6 @@ public class HomeTimeLineActivity extends Activity {
 				} catch (YouRoom4JException e) {
 					// FIXME
 					e.printStackTrace();
-					Toast.makeText(
-						homeTimeLineActivity.getApplicationContext(),
-						"YouRoomアクセスでエラーが発生しました。",
-						Toast.LENGTH_LONG).show();
-					homeTimeLineActivity.mReload.setEnabled(true);
 				}
 			}
 			return null;
@@ -393,13 +388,18 @@ public class HomeTimeLineActivity extends Activity {
 		 */
 		@Override
 		protected void onPostExecute(List<Entry> entryList) {
-			if (entryList != null) {
-				final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
-				if (homeTimeLineActivity != null) {
+			final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
+			if (homeTimeLineActivity != null) {
+				if (entryList != null) {
 					homeTimeLineActivity.showEntryList(entryList);
 					homeTimeLineActivity.mIsLoaded = true;
-					homeTimeLineActivity.mReload.setEnabled(true);
+				} else {
+					Toast.makeText(
+						homeTimeLineActivity.getApplicationContext(),
+						"YouRoomアクセスでエラーが発生しました。",
+						Toast.LENGTH_LONG).show();
 				}
+				homeTimeLineActivity.mReload.setEnabled(true);
 			}
 		}
 

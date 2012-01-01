@@ -17,6 +17,7 @@ import youroom4j.http.HttpResponseHandler;
 import youroom4j.http.httpclient.HttpRequestClientImpl;
 import youroom4j.oauth.OAuthClient;
 import youroom4j.oauth.OAuthTokenCredential;
+import android.util.Log;
 
 //TODO 流れるようなインターフェースにしてはどうか？
 // FIXME 抽象クラスにして、サブクラスとしてAndroidYouRoomClientをつくる。インスタンス生成はYouRoomClientFactoryで。
@@ -109,6 +110,7 @@ public class YouRoomClient {
 
 	// TODO Android以外はStAXでパースする
 	// FIXME Parserを別クラスに切り出す
+	// FIXME 不要なelseif解析はぶくため、continue使う
 	private List<Entry> parseEntries(String responseContent) throws YouRoom4JException {
 		List<Entry> results = new ArrayList<Entry>();
 		ByteArrayInputStream byteArrayInputStream = null;
@@ -350,6 +352,28 @@ public class YouRoomClient {
 		try {
 			String responseContent = client.execute(requestEntity, HttpStatus.SC_CREATED);
 			System.out.println(responseContent);
+			return parseEntries(responseContent).get(0);
+		} catch (IOException e) {
+			throw new YouRoom4JException(e);
+		}
+	}
+
+	public Entry updateEntry(String groupParam, long id, String content) throws YouRoom4JException {
+		List<KeyValueString> paramList = new ArrayList<KeyValueString>();
+		paramList.add(new KeyValueString("format", "xml"));
+		paramList.add(new KeyValueString("entry[content]", content));
+
+		String url = "https://www.youroom.in/r/" + groupParam + "/entries/" + id;
+		HttpRequestEntity requestEntity = new HttpRequestEntity();
+		requestEntity.setUrl(url);
+		requestEntity.setMethod(HttpRequestEntity.PUT);
+		requestEntity.setParams(paramList);
+		oAuthClient.addOAuthTokenCredentialToRequestEntity(requestEntity, url, paramList);
+
+		HttpRequestClient client = new HttpRequestClientImpl(5000, 10000, 0, Charset.forName("UTF-8"));
+		try {
+			String responseContent = client.execute(requestEntity, HttpStatus.SC_CREATED);
+			Log.d("", responseContent);
 			return parseEntries(responseContent).get(0);
 		} catch (IOException e) {
 			throw new YouRoom4JException(e);

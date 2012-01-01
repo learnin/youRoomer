@@ -21,13 +21,16 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class CreateEntryActivity extends Activity {
+public class EditEntryActivity extends Activity {
 
 	private static final int MAX_INPUT_LENGTH = 280;
 
 	private YouRoomClient mYouRoomClient;
 	private CreateEntryTask mCreateEntryTask;
+
+	private String mAction = null;
 	private String mGroupToParam = null;
+	private long mEntryId;
 
 	private EditText mEntryEditText;
 	private TextView mInputLength;
@@ -81,9 +84,14 @@ public class CreateEntryActivity extends Activity {
 		super.onResume();
 		Intent intent = getIntent();
 		if (intent != null) {
-			CharSequence groupToParam = intent.getCharSequenceExtra("GROUP_TO_PARAM");
-			if (groupToParam != null) {
-				mGroupToParam = groupToParam.toString();
+			mAction = intent.getStringExtra("ACTION");
+			mGroupToParam = intent.getStringExtra("GROUP_TO_PARAM");
+			if ("UPDATE".equals(mAction)) {
+				mEntryId = intent.getLongExtra("ID", 0L);
+				mEntryEditText.setText(intent.getCharSequenceExtra("CONTENT"));
+				mCreateEntryButton.setText(R.string.update_entry);
+			} else {
+				mCreateEntryButton.setText(R.string.create_entry);
 			}
 		}
 		countInputLength();
@@ -118,45 +126,61 @@ public class CreateEntryActivity extends Activity {
 	}
 
 	private void afterCreateEntry() {
-		Toast.makeText(getApplicationContext(), "投稿しました。", Toast.LENGTH_SHORT).show();
+		if ("CREATE".equals(mAction)) {
+			Toast.makeText(getApplicationContext(), "投稿しました。", Toast.LENGTH_SHORT).show();
+		} else if ("UPDATE".equals(mAction)) {
+			Toast.makeText(getApplicationContext(), "更新しました。", Toast.LENGTH_SHORT).show();
+		}
 		finish();
 	}
 
-	private static class CreateEntryTask extends AsyncTask<Void, Integer, Void> {
+	private static class CreateEntryTask extends AsyncTask<Void, Integer, Boolean> {
 
-		private WeakReference<CreateEntryActivity> mCreateEntryActivity;
+		private WeakReference<EditEntryActivity> mCreateEntryActivity;
 
-		private CreateEntryTask(CreateEntryActivity createEntryActivity) {
-			mCreateEntryActivity = new WeakReference<CreateEntryActivity>(createEntryActivity);
+		private CreateEntryTask(EditEntryActivity createEntryActivity) {
+			mCreateEntryActivity = new WeakReference<EditEntryActivity>(createEntryActivity);
 		}
 
 		@Override
-		protected Void doInBackground(Void... params) {
-			final CreateEntryActivity createEntryActivity = mCreateEntryActivity.get();
+		protected Boolean doInBackground(Void... params) {
+			final EditEntryActivity createEntryActivity = mCreateEntryActivity.get();
+
 			if (createEntryActivity != null) {
 				try {
-					createEntryActivity.mYouRoomClient.createEntry(
-						createEntryActivity.mGroupToParam,
-						createEntryActivity.mEntryEditText.getText().toString(),
-						null);
+					if ("CREATE".equals(createEntryActivity.mAction)) {
+						createEntryActivity.mYouRoomClient.createEntry(
+							createEntryActivity.mGroupToParam,
+							createEntryActivity.mEntryEditText.getText().toString(),
+							null);
+					} else if ("UPDATE".equals(createEntryActivity.mAction)) {
+						createEntryActivity.mYouRoomClient.updateEntry(
+							createEntryActivity.mGroupToParam,
+							createEntryActivity.mEntryId,
+							createEntryActivity.mEntryEditText.getText().toString());
+					}
 				} catch (YouRoom4JException e) {
 					// FIXME
 					e.printStackTrace();
+					return false;
+				}
+			}
+			return true;
+		}
+
+		@Override
+		protected void onPostExecute(Boolean result) {
+			final EditEntryActivity createEntryActivity = mCreateEntryActivity.get();
+			if (createEntryActivity != null) {
+				if (result) {
+					createEntryActivity.afterCreateEntry();
+				} else {
 					Toast.makeText(
 						createEntryActivity.getApplicationContext(),
 						"YouRoomアクセスでエラーが発生しました。",
 						Toast.LENGTH_LONG).show();
 					createEntryActivity.mCreateEntryButton.setEnabled(true);
 				}
-			}
-			return null;
-		}
-
-		@Override
-		protected void onPostExecute(Void result) {
-			final CreateEntryActivity createEntryActivity = mCreateEntryActivity.get();
-			if (createEntryActivity != null) {
-				createEntryActivity.afterCreateEntry();
 			}
 		}
 	}

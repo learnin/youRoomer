@@ -54,10 +54,7 @@ public class RoomTimeLineActivity extends Activity {
 
 		Intent intent = getIntent();
 		if (intent != null) {
-			CharSequence groupToParam = intent.getCharSequenceExtra("GROUP_TO_PARAM");
-			if (groupToParam != null) {
-				mGroupToParam = groupToParam.toString();
-			}
+			mGroupToParam = intent.getStringExtra("GROUP_TO_PARAM");
 		}
 
 		setContentView(R.layout.room_time_line);
@@ -97,7 +94,8 @@ public class RoomTimeLineActivity extends Activity {
 		mCreateEntry = (Button) findViewById(R.id.create_entry_button);
 		mCreateEntry.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				Intent intent = new Intent(getApplicationContext(), CreateEntryActivity.class);
+				Intent intent = new Intent(getApplicationContext(), EditEntryActivity.class);
+				intent.putExtra("ACTION", "CREATE");
 				intent.putExtra("GROUP_TO_PARAM", mGroupToParam);
 				startActivity(intent);
 			}
@@ -109,10 +107,7 @@ public class RoomTimeLineActivity extends Activity {
 		super.onResume();
 		Intent intent = getIntent();
 		if (intent != null) {
-			CharSequence groupToParam = intent.getCharSequenceExtra("GROUP_TO_PARAM");
-			if (groupToParam != null) {
-				mGroupToParam = groupToParam.toString();
-			}
+			mGroupToParam = intent.getStringExtra("GROUP_TO_PARAM");
 		}
 		if (!mIsLoaded) {
 			getTimeLine();
@@ -176,9 +171,19 @@ public class RoomTimeLineActivity extends Activity {
 					ListView listView = (ListView) parent;
 					MenuItem menuItem = (MenuItem) listView.getItemAtPosition(position);
 					Entry entry = menuItem.getEntry();
+					Intent intent;
 					switch (menuItem.getId()) {
 					case MENU_ITEM_EDIT_ID:
 						// FIXME 編集画面へインテント
+						if (entry != null) {
+							String content = entry.getContent();
+							intent = new Intent(getApplicationContext(), EditEntryActivity.class);
+							intent.putExtra("ACTION", "UPDATE");
+							intent.putExtra("GROUP_TO_PARAM", mGroupToParam);
+							intent.putExtra("ID", entry.getId());
+							intent.putExtra("CONTENT", content);
+							startActivity(intent);
+						}
 						break;
 					case MENU_ITEM_DELETE_ID:
 						// FIXME 削除確認、削除処理実装
@@ -192,7 +197,7 @@ public class RoomTimeLineActivity extends Activity {
 					case MENU_ITEM_SHARE_ID:
 						if (entry != null) {
 							String content = entry.getContent();
-							Intent intent = new Intent(Intent.ACTION_SEND);
+							intent = new Intent(Intent.ACTION_SEND);
 							intent.setType("text/plain");
 							intent.putExtra(Intent.EXTRA_TEXT, content);
 							try {
@@ -297,6 +302,7 @@ public class RoomTimeLineActivity extends Activity {
 		// FIXME 進捗バー
 	}
 
+	// TODO Support library使って、AsyncTaskLoader使うようにして可能なら外出してHomeTLのTaskと共通化する。
 	private static class GetTimeLineTask extends AsyncTask<Void, Integer, List<Entry>> {
 
 		private WeakReference<RoomTimeLineActivity> mRoomTimeLineActivity;
@@ -317,11 +323,6 @@ public class RoomTimeLineActivity extends Activity {
 				} catch (YouRoom4JException e) {
 					// FIXME
 					e.printStackTrace();
-					Toast.makeText(
-						roomTimeLineActivity.getApplicationContext(),
-						"YouRoomアクセスでエラーが発生しました。",
-						Toast.LENGTH_LONG).show();
-					roomTimeLineActivity.mReload.setEnabled(true);
 				}
 			}
 			return null;
@@ -332,13 +333,18 @@ public class RoomTimeLineActivity extends Activity {
 		 */
 		@Override
 		protected void onPostExecute(List<Entry> entryList) {
-			if (entryList != null) {
-				final RoomTimeLineActivity roomTimeLineActivity = mRoomTimeLineActivity.get();
-				if (roomTimeLineActivity != null) {
+			final RoomTimeLineActivity roomTimeLineActivity = mRoomTimeLineActivity.get();
+			if (roomTimeLineActivity != null) {
+				if (entryList != null) {
 					roomTimeLineActivity.showEntryList(entryList);
 					roomTimeLineActivity.mIsLoaded = true;
-					roomTimeLineActivity.mReload.setEnabled(true);
+				} else {
+					Toast.makeText(
+						roomTimeLineActivity.getApplicationContext(),
+						"YouRoomアクセスでエラーが発生しました。",
+						Toast.LENGTH_LONG).show();
 				}
+				roomTimeLineActivity.mReload.setEnabled(true);
 			}
 		}
 

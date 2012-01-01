@@ -15,8 +15,10 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.params.ConnRoutePNames;
@@ -72,6 +74,8 @@ public class HttpRequestClientImpl implements HttpRequestClient {
 			httpRequestBase = new HttpGet(requestEntity.getUrl());
 		} else if (requestEntity.getMethod() == HttpRequestEntity.POST) {
 			httpRequestBase = new HttpPost(requestEntity.getUrl());
+		} else if (requestEntity.getMethod() == HttpRequestEntity.PUT) {
+			httpRequestBase = new HttpPut(requestEntity.getUrl());
 		} else {
 			throw new UnsupportedOperationException();
 		}
@@ -84,12 +88,14 @@ public class HttpRequestClientImpl implements HttpRequestClient {
 		}
 
 		List<KeyValueString> paramList = requestEntity.getParams();
-		if (requestEntity.getMethod() == HttpRequestEntity.POST && paramList != null && !paramList.isEmpty()) {
+		if ((requestEntity.getMethod() == HttpRequestEntity.POST || requestEntity.getMethod() == HttpRequestEntity.PUT)
+			&& paramList != null
+			&& !paramList.isEmpty()) {
 			List<NameValuePair> params = new ArrayList<NameValuePair>();
 			for (KeyValueString keyValueString : paramList) {
 				params.add(new BasicNameValuePair(keyValueString.getKey(), keyValueString.getValue()));
 			}
-			((HttpPost) httpRequestBase).setEntity(new UrlEncodedFormEntity(params));
+			((HttpEntityEnclosingRequestBase) httpRequestBase).setEntity(new UrlEncodedFormEntity(params));
 		}
 
 		// TODO body(key=value&...形式でないデータのPOST)のセット実装
@@ -182,7 +188,7 @@ public class HttpRequestClientImpl implements HttpRequestClient {
 						}
 					}
 				}
-				throw new RuntimeException(String.valueOf(responseEntity.getStatusCode()));
+				throw new IOException("Unexpected HTTP status code returned. " + responseEntity.getStatusCode());
 			}
 		});
 	}

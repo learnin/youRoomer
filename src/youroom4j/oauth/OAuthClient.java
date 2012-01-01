@@ -239,6 +239,8 @@ public class OAuthClient {
 			signature = createSignature("GET", baseStringUri, parameterList);
 		} else if (requestEntity.getMethod() == HttpRequestEntity.POST) {
 			signature = createSignature("POST", baseStringUri, parameterList);
+		} else if (requestEntity.getMethod() == HttpRequestEntity.PUT) {
+			signature = createSignature("PUT", baseStringUri, parameterList);
 		} else {
 			throw new UnsupportedOperationException();
 		}
