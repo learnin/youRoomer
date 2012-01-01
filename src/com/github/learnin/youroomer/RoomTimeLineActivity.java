@@ -174,7 +174,6 @@ public class RoomTimeLineActivity extends Activity {
 					Intent intent;
 					switch (menuItem.getId()) {
 					case MENU_ITEM_EDIT_ID:
-						// FIXME 編集画面へインテント
 						if (entry != null) {
 							String content = entry.getContent();
 							intent = new Intent(getApplicationContext(), EditEntryActivity.class);

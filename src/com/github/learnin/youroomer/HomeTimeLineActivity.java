@@ -172,9 +172,18 @@ public class HomeTimeLineActivity extends Activity {
 					ListView listView = (ListView) parent;
 					MenuItem menuItem = (MenuItem) listView.getItemAtPosition(position);
 					Entry entry = menuItem.getEntry();
+					Intent intent;
 					switch (menuItem.getId()) {
 					case MENU_ITEM_EDIT_ID:
-						// FIXME 編集画面へインテント
+						if (entry != null) {
+							String content = entry.getContent();
+							intent = new Intent(getApplicationContext(), EditEntryActivity.class);
+							intent.putExtra("ACTION", "UPDATE");
+							intent.putExtra("GROUP_TO_PARAM", entry.getParticipation().getGroup().getToParam());
+							intent.putExtra("ID", entry.getId());
+							intent.putExtra("CONTENT", content);
+							startActivity(intent);
+						}
 						break;
 					case MENU_ITEM_DELETE_ID:
 						// FIXME 削除確認、削除処理実装
@@ -188,7 +197,7 @@ public class HomeTimeLineActivity extends Activity {
 					case MENU_ITEM_SHARE_ID:
 						if (entry != null) {
 							String content = entry.getContent();
-							Intent intent = new Intent(Intent.ACTION_SEND);
+							intent = new Intent(Intent.ACTION_SEND);
 							intent.setType("text/plain");
 							intent.putExtra(Intent.EXTRA_TEXT, content);
 							try {
