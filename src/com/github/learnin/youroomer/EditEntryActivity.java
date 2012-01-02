@@ -55,7 +55,6 @@ public class EditEntryActivity extends Activity {
 	private void setupView(final Bundle savedInstanceState) {
 		mEntryEditText = (EditText) findViewById(R.id.entry_edit_text);
 		mEntryEditText.setOnKeyListener(new OnKeyListener() {
-			@Override
 			public boolean onKey(View v, int keyCode, KeyEvent event) {
 				countInputLength();
 				return false;
@@ -134,6 +133,7 @@ public class EditEntryActivity extends Activity {
 		finish();
 	}
 
+	// TODO onPauseでキャンセルするか要検討。onCancelledの実装も含めて。
 	private static class CreateEntryTask extends AsyncTask<Void, Integer, Boolean> {
 
 		private WeakReference<EditEntryActivity> mCreateEntryActivity;

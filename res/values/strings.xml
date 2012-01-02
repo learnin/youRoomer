@@ -10,5 +10,8 @@
     <string name="create_entry">投稿する</string>
     <string name="update_entry">更新する</string>
     <string name="cancel">キャンセル</string>
+    <string name="delete">削除</string>
+    <string name="deleted">削除しました</string>
     <string name="title_of_action_send_intent">エントリを共有するアプリケーションを選択してください</string>
+    <string name="confirm_delete_entry">このエントリを削除しますか？</string>
 </resources>

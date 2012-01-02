@@ -15,6 +15,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -76,6 +77,8 @@ public class HttpRequestClientImpl implements HttpRequestClient {
 			httpRequestBase = new HttpPost(requestEntity.getUrl());
 		} else if (requestEntity.getMethod() == HttpRequestEntity.PUT) {
 			httpRequestBase = new HttpPut(requestEntity.getUrl());
+		} else if (requestEntity.getMethod() == HttpRequestEntity.DELETE) {
+			httpRequestBase = new HttpDelete(requestEntity.getUrl());
 		} else {
 			throw new UnsupportedOperationException();
 		}

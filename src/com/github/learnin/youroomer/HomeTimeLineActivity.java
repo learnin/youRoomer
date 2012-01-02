@@ -72,8 +72,6 @@ public class HomeTimeLineActivity extends Activity {
 	private void setupView(final Bundle savedInstanceState) {
 		mListView = (ListView) findViewById(R.id.entry_list);
 		mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				ListView listView = (ListView) parent;
 				Entry entry = (Entry) listView.getItemAtPosition(position);
@@ -156,7 +154,6 @@ public class HomeTimeLineActivity extends Activity {
 				contextMenuDialogBuilder
 					.setCancelable(true)
 					.setPositiveButton(getString(R.string.close), new DialogInterface.OnClickListener() {
-						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							dialog.cancel();
 						}
@@ -167,7 +164,6 @@ public class HomeTimeLineActivity extends Activity {
 			ListView contextMenuItemListView =
 				(ListView) ContextMenuDialogView.findViewById(R.id.context_menu_item_list);
 			contextMenuItemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-				@Override
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 					ListView listView = (ListView) parent;
 					MenuItem menuItem = (MenuItem) listView.getItemAtPosition(position);
@@ -204,7 +200,6 @@ public class HomeTimeLineActivity extends Activity {
 					.setTitle(getString(R.string.dialog_room_list_title))
 					.setCancelable(true)
 					.setPositiveButton(getString(R.string.close), new DialogInterface.OnClickListener() {
-						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							dialog.cancel();
 						}
@@ -214,7 +209,6 @@ public class HomeTimeLineActivity extends Activity {
 
 			ListView roomListView = (ListView) layoutView.findViewById(R.id.room_list);
 			roomListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-				@Override
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 					ListView listView = (ListView) parent;
 					Group group = (Group) listView.getItemAtPosition(position);
@@ -451,10 +445,6 @@ public class HomeTimeLineActivity extends Activity {
 				} catch (YouRoom4JException e) {
 					// FIXME
 					e.printStackTrace();
-					Toast.makeText(
-						homeTimeLineActivity.getApplicationContext(),
-						"YouRoomアクセスでエラーが発生しました。",
-						Toast.LENGTH_LONG).show();
 				}
 			}
 			return null;
@@ -465,11 +455,18 @@ public class HomeTimeLineActivity extends Activity {
 		 */
 		@Override
 		protected void onPostExecute(List<Group> groupList) {
-			if (groupList != null) {
-				final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
-				final Dialog dialog = mDialog.get();
-				if (homeTimeLineActivity != null && dialog != null) {
-					homeTimeLineActivity.showRoomListOnDialog(dialog, groupList);
+			final HomeTimeLineActivity homeTimeLineActivity = mHomeTimeLineActivity.get();
+			if (homeTimeLineActivity != null) {
+				if (groupList != null) {
+					final Dialog dialog = mDialog.get();
+					if (dialog != null) {
+						homeTimeLineActivity.showRoomListOnDialog(dialog, groupList);
+					}
+				} else {
+					Toast.makeText(
+						homeTimeLineActivity.getApplicationContext(),
+						"YouRoomアクセスでエラーが発生しました。",
+						Toast.LENGTH_LONG).show();
 				}
 			}
 		}

@@ -380,4 +380,25 @@ public class YouRoomClient {
 		}
 	}
 
+	public Entry destroyEntry(String groupParam, long id) throws YouRoom4JException {
+		List<KeyValueString> paramList = new ArrayList<KeyValueString>();
+		paramList.add(new KeyValueString("format", "xml"));
+
+		String url = "https://www.youroom.in/r/" + groupParam + "/entries/" + id;
+		HttpRequestEntity requestEntity = new HttpRequestEntity();
+		requestEntity.setUrl(url);
+		requestEntity.setMethod(HttpRequestEntity.DELETE);
+		requestEntity.setUrl(url + "?format=xml");
+		oAuthClient.addOAuthTokenCredentialToRequestEntity(requestEntity, url, paramList);
+
+		HttpRequestClient client = new HttpRequestClientImpl(5000, 10000, 0, Charset.forName("UTF-8"));
+		try {
+			String responseContent = client.execute(requestEntity);
+			Log.d("", responseContent);
+			return parseEntries(responseContent).get(0);
+		} catch (IOException e) {
+			throw new YouRoom4JException(e);
+		}
+	}
+
 }
