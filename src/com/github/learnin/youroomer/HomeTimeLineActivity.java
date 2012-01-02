@@ -172,46 +172,26 @@ public class HomeTimeLineActivity extends Activity {
 					ListView listView = (ListView) parent;
 					MenuItem menuItem = (MenuItem) listView.getItemAtPosition(position);
 					Entry entry = menuItem.getEntry();
-					Intent intent;
-					switch (menuItem.getId()) {
-					case MENU_ITEM_EDIT_ID:
-						if (entry != null) {
-							String content = entry.getContent();
-							intent = new Intent(getApplicationContext(), EditEntryActivity.class);
-							intent.putExtra("ACTION", "UPDATE");
-							intent.putExtra("GROUP_TO_PARAM", entry.getParticipation().getGroup().getToParam());
-							intent.putExtra("ID", entry.getId());
-							intent.putExtra("CONTENT", content);
-							startActivity(intent);
+					if (entry != null) {
+						switch (menuItem.getId()) {
+						case MENU_ITEM_EDIT_ID:
+							goEditEntry(entry);
+							break;
+						case MENU_ITEM_DELETE_ID:
+							// FIXME 削除確認、削除処理実装
+							break;
+						case MENU_ITEM_SHOW_COMMENT_ID:
+							// FIXME 詳細画面へインテント
+							break;
+						case MENU_ITEM_DO_COMMENT_ID:
+							// FIXME コメント入力画面へインテント
+							break;
+						case MENU_ITEM_SHARE_ID:
+							goShareEntry(entry);
+							break;
+						default:
+							break;
 						}
-						break;
-					case MENU_ITEM_DELETE_ID:
-						// FIXME 削除確認、削除処理実装
-						break;
-					case MENU_ITEM_SHOW_COMMENT_ID:
-						// FIXME 詳細画面へインテント
-						break;
-					case MENU_ITEM_DO_COMMENT_ID:
-						// FIXME コメント入力画面へインテント
-						break;
-					case MENU_ITEM_SHARE_ID:
-						if (entry != null) {
-							String content = entry.getContent();
-							intent = new Intent(Intent.ACTION_SEND);
-							intent.setType("text/plain");
-							intent.putExtra(Intent.EXTRA_TEXT, content);
-							try {
-								startActivity(Intent.createChooser(
-									intent,
-									getString(R.string.title_of_action_send_intent)));
-							} catch (android.content.ActivityNotFoundException e) {
-								// FIXME
-								// 該当するActivityがないときの処理。事前にあるか調べてからインテントする方がよいか？
-							}
-						}
-						break;
-					default:
-						break;
 					}
 				}
 			});
@@ -246,6 +226,29 @@ public class HomeTimeLineActivity extends Activity {
 			return mRoomListDialog;
 		default:
 			return null;
+		}
+	}
+
+	private void goEditEntry(Entry entry) {
+		String content = entry.getContent();
+		Intent intent = new Intent(getApplicationContext(), EditEntryActivity.class);
+		intent.putExtra("ACTION", "UPDATE");
+		intent.putExtra("GROUP_TO_PARAM", entry.getParticipation().getGroup().getToParam());
+		intent.putExtra("ID", entry.getId());
+		intent.putExtra("CONTENT", content);
+		startActivity(intent);
+	}
+
+	private void goShareEntry(Entry entry) {
+		String content = entry.getContent();
+		Intent intent = new Intent(Intent.ACTION_SEND);
+		intent.setType("text/plain");
+		intent.putExtra(Intent.EXTRA_TEXT, content);
+		try {
+			startActivity(Intent.createChooser(intent, getString(R.string.title_of_action_send_intent)));
+		} catch (android.content.ActivityNotFoundException e) {
+			// FIXME
+			// 該当するActivityがないときの処理。事前にあるか調べてからインテントする方がよいか？
 		}
 	}
 
