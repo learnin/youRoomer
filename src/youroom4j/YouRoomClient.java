@@ -143,7 +143,7 @@ public class YouRoomClient {
 						} else if ("id".equals(tag)) {
 							entry.setId(Long.parseLong(parser.nextText()));
 						} else if ("can-update".equals(tag) && !"true".equals(parser.getAttributeValue(null, "nil"))) {
-							entry.setCanUpdate(Boolean.parseBoolean(parser.nextText()));
+							entry.setUpdatable(Boolean.parseBoolean(parser.nextText()));
 						} else if ("level".equals(tag)) {
 							entry.setLevel(Integer.parseInt(parser.nextText()));
 						} else if ("parent-id".equals(tag) && !"true".equals(parser.getAttributeValue(null, "nil"))) {

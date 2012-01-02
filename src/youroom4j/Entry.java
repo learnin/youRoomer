@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-
-
 public class Entry implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -95,21 +93,21 @@ public class Entry implements Serializable {
 	}
 
 	/**
-	 * canUpdateを取得します。
+	 * updatableを取得します。
 	 *
 	 * @return canUpdate
 	 */
-	public boolean isCanUpdate() {
+	public boolean isUpdatable() {
 		return canUpdate;
 	}
 
 	/**
-	 * canUpdateを設定します。
+	 * updatableを設定します。
 	 *
-	 * @param canUpdate canUpdate
+	 * @param updatable updatable
 	 */
-	public void setCanUpdate(boolean canUpdate) {
-		this.canUpdate = canUpdate;
+	public void setUpdatable(boolean updatable) {
+		this.canUpdate = updatable;
 	}
 
 	/**
