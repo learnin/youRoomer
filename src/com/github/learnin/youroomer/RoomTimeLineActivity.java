@@ -229,17 +229,19 @@ public class RoomTimeLineActivity extends Activity {
 			if (bundle != null && bundle.getSerializable("ENTRY") != null) {
 				entry = (Entry) bundle.getSerializable("ENTRY");
 			}
-			MenuItem menuItem = new MenuItem();
-			menuItem.setId(MENU_ITEM_EDIT_ID);
-			menuItem.setText("編集する");
-			menuItem.setEntry(entry);
-			menuItemList.add(menuItem);
+			if (entry != null && entry.isUpdatable()) {
+				MenuItem menuItem = new MenuItem();
+				menuItem.setId(MENU_ITEM_EDIT_ID);
+				menuItem.setText("編集する");
+				menuItem.setEntry(entry);
+				menuItemList.add(menuItem);
 
-			MenuItem menuItem2 = new MenuItem();
-			menuItem2.setId(MENU_ITEM_DELETE_ID);
-			menuItem2.setText("削除する");
-			menuItem2.setEntry(entry);
-			menuItemList.add(menuItem2);
+				MenuItem menuItem2 = new MenuItem();
+				menuItem2.setId(MENU_ITEM_DELETE_ID);
+				menuItem2.setText("削除する");
+				menuItem2.setEntry(entry);
+				menuItemList.add(menuItem2);
+			}
 
 			if (entry != null && entry.getChildren() != null && !entry.getChildren().isEmpty()) {
 				MenuItem menuItem3 = new MenuItem();
