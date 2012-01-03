@@ -1,56 +1,21 @@
 package com.github.learnin.youroomer;
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.List;
 
 import youroom4j.Entry;
 import youroom4j.YouRoom4JException;
-import youroom4j.YouRoomClient;
-import youroom4j.oauth.OAuthTokenCredential;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.ListView;
-import android.widget.Toast;
 
-// FIXME HomeTimeLineActivityと重複コードが多い。共通化する
-public class RoomTimeLineActivity extends Activity {
+public class RoomTimeLineActivity extends AbstractTimeLineActivity {
 
-	private static final String GET_TIME_LINE_TASK_STATUS_RUNNING =
-		"com.github.learnin.youroomer.RoomTimeLineActivity.GET_TIME_LINE_TASK_STATUS_RUNNING";
-
-	private static final int DIALOG_CONTEXT_MENU_ID = 0;
-	private static final int DIALOG_CONFIRM_DESTROY_ENTRY_ID = 1;
-
-	private static final int MENU_ITEM_EDIT_ID = 0;
-	private static final int MENU_ITEM_DESTROY_ID = 1;
-	private static final int MENU_ITEM_SHOW_COMMENT_ID = 2;
-	private static final int MENU_ITEM_DO_COMMENT_ID = 3;
-	private static final int MENU_ITEM_SHARE_ID = 4;
-
-	private YouRoomClient mYouRoomClient;
-	private GetTimeLineTask mGetTimeLineTask;
-	private DestroyEntryTask mDestroyEntryTask;
-	private boolean mIsLoaded = false;
-	private Dialog mContextMenuDialog;
-	private Dialog mConfirmDestroyEntryDialog;
 	private String mGroupToParam = null;
-	private long mTargetEntryId;
 
-	private ListView mListView;
 	private Button mCreateEntry;
-	private Button mReload;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -63,37 +28,11 @@ public class RoomTimeLineActivity extends Activity {
 
 		setContentView(R.layout.room_time_line);
 		setupView(savedInstanceState);
-
-		SharedPreferences sharedPreferences = getSharedPreferences("oauth", Context.MODE_PRIVATE);
-		OAuthTokenCredential oAuthTokenCredential = new OAuthTokenCredential();
-		oAuthTokenCredential.setToken(sharedPreferences.getString("token", ""));
-		oAuthTokenCredential.setTokenSecret(sharedPreferences.getString("tokenSecret", ""));
-		mYouRoomClient = YouRoomClientBuilder.createYouRoomClient();
-		mYouRoomClient.setOAuthTokenCredential(oAuthTokenCredential);
+		setupYouRoomClient();
 	}
 
-	private void setupView(final Bundle savedInstanceState) {
-		mListView = (ListView) findViewById(R.id.entry_list);
-		mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				ListView listView = (ListView) parent;
-				Entry entry = (Entry) listView.getItemAtPosition(position);
-				Bundle bundle = new Bundle();
-				if (savedInstanceState != null) {
-					bundle.putAll(savedInstanceState);
-				}
-				bundle.putSerializable("ENTRY", entry);
-				mTargetEntryId = entry.getId();
-				showDialog(DIALOG_CONTEXT_MENU_ID, bundle);
-			}
-		});
-
-		mReload = (Button) findViewById(R.id.reload_button);
-		mReload.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				getTimeLine();
-			}
-		});
+	protected void setupView(final Bundle savedInstanceState) {
+		super.setupView(savedInstanceState);
 
 		mCreateEntry = (Button) findViewById(R.id.create_entry_button);
 		mCreateEntry.setOnClickListener(new OnClickListener() {
@@ -114,110 +53,23 @@ public class RoomTimeLineActivity extends Activity {
 			mGroupToParam = intent.getStringExtra("GROUP_TO_PARAM");
 		}
 		if (!mIsLoaded) {
-			getTimeLine();
+			doGetTimeLineTask();
 		}
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		dismissDialog();
-		cancelGetTimeLineTask();
 		// TODO DestroyEntryTaskもキャンセルするか要検討
 	}
 
 	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		removeDialog();
-	}
-
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		if (mGetTimeLineTask != null && mGetTimeLineTask.getStatus() == AsyncTask.Status.RUNNING) {
-			outState.putBoolean(GET_TIME_LINE_TASK_STATUS_RUNNING, true);
-		} else {
-			outState.putBoolean(GET_TIME_LINE_TASK_STATUS_RUNNING, false);
-		}
-	}
-
-	@Override
-	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		super.onRestoreInstanceState(savedInstanceState);
-		if (savedInstanceState.getBoolean(GET_TIME_LINE_TASK_STATUS_RUNNING)) {
-			mIsLoaded = false;
-		}
-	}
-
-	@Override
-	protected Dialog onCreateDialog(int id, final Bundle bundle) {
+	protected Dialog onCreateDialog(int id, Bundle bundle) {
 		switch (id) {
 		case DIALOG_CONTEXT_MENU_ID:
-			final View ContextMenuDialogView = getLayoutInflater().inflate(R.layout.context_menu_dialog, null);
-			AlertDialog.Builder contextMenuDialogBuilder = new AlertDialog.Builder(this);
-			mContextMenuDialog =
-				contextMenuDialogBuilder
-					.setCancelable(true)
-					.setPositiveButton(getString(R.string.close), new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-							dialog.cancel();
-						}
-					})
-					.setView(ContextMenuDialogView)
-					.create();
-
-			ListView contextMenuItemListView =
-				(ListView) ContextMenuDialogView.findViewById(R.id.context_menu_item_list);
-			contextMenuItemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-					ListView listView = (ListView) parent;
-					MenuItem menuItem = (MenuItem) listView.getItemAtPosition(position);
-					Entry entry = menuItem.getEntry();
-					if (entry != null) {
-						switch (menuItem.getId()) {
-						case MENU_ITEM_EDIT_ID:
-							goEditEntry(entry);
-							break;
-						case MENU_ITEM_DESTROY_ID:
-							showDialog(DIALOG_CONFIRM_DESTROY_ENTRY_ID, bundle);
-							break;
-						case MENU_ITEM_SHOW_COMMENT_ID:
-							// FIXME 詳細画面へインテント
-							break;
-						case MENU_ITEM_DO_COMMENT_ID:
-							// FIXME コメント入力画面へインテント
-							break;
-						case MENU_ITEM_SHARE_ID:
-							goShareEntry(entry);
-							break;
-						default:
-							break;
-						}
-					}
-				}
-			});
-			return mContextMenuDialog;
+			return createContextMenuDialog(bundle);
 		case DIALOG_CONFIRM_DESTROY_ENTRY_ID:
-			AlertDialog.Builder confirmDestroyEntryDialogBuilder = new AlertDialog.Builder(this);
-			mConfirmDestroyEntryDialog =
-				confirmDestroyEntryDialogBuilder
-					.setMessage(R.string.confirm_delete_entry)
-					.setCancelable(true)
-					.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							doDestroyEntry();
-							dismissDialog(DIALOG_CONTEXT_MENU_ID);
-						}
-					})
-					.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							dialog.cancel();
-							dismissDialog(DIALOG_CONTEXT_MENU_ID);
-						}
-					})
-					.create();
-			return mConfirmDestroyEntryDialog;
+			return createConfirmDestroyEntryDialog();
 		default:
 			return null;
 		}
@@ -227,109 +79,15 @@ public class RoomTimeLineActivity extends Activity {
 	protected void onPrepareDialog(int id, Dialog dialog, final Bundle bundle) {
 		switch (id) {
 		case DIALOG_CONTEXT_MENU_ID:
-			List<MenuItem> menuItemList = new ArrayList<MenuItem>();
-			Entry entry = null;
-			if (bundle != null && bundle.getSerializable("ENTRY") != null) {
-				entry = (Entry) bundle.getSerializable("ENTRY");
-			}
-			if (entry != null && entry.isUpdatable()) {
-				MenuItem menuItem = new MenuItem();
-				menuItem.setId(MENU_ITEM_EDIT_ID);
-				menuItem.setText("編集する");
-				menuItem.setEntry(entry);
-				menuItemList.add(menuItem);
-
-				MenuItem menuItem2 = new MenuItem();
-				menuItem2.setId(MENU_ITEM_DESTROY_ID);
-				menuItem2.setText("削除する");
-				menuItem2.setEntry(entry);
-				menuItemList.add(menuItem2);
-			}
-
-			if (entry != null && entry.getChildren() != null && !entry.getChildren().isEmpty()) {
-				MenuItem menuItem3 = new MenuItem();
-				menuItem3.setId(MENU_ITEM_SHOW_COMMENT_ID);
-				menuItem3.setText("コメントを見る");
-				menuItem3.setEntry(entry);
-				menuItemList.add(menuItem3);
-			}
-
-			MenuItem menuItem4 = new MenuItem();
-			menuItem4.setId(MENU_ITEM_DO_COMMENT_ID);
-			menuItem4.setText("コメントする");
-			menuItem4.setEntry(entry);
-			menuItemList.add(menuItem4);
-
-			MenuItem menuItem5 = new MenuItem();
-			menuItem5.setId(MENU_ITEM_SHARE_ID);
-			menuItem5.setText("このエントリを共有する");
-			menuItem5.setEntry(entry);
-			menuItemList.add(menuItem5);
-
-			ListView contextMenuItemListView = (ListView) dialog.findViewById(R.id.context_menu_item_list);
-			contextMenuItemListView.setAdapter(new ContextMenuItemListAdapter(getApplicationContext(), menuItemList));
+			prepareContextMenuDialog(dialog, bundle);
 			break;
 		default:
 			break;
 		}
 	}
 
-	private void goEditEntry(Entry entry) {
-		String content = entry.getContent();
-		Intent intent = new Intent(getApplicationContext(), EditEntryActivity.class);
-		intent.putExtra("ACTION", "UPDATE");
-		intent.putExtra("GROUP_TO_PARAM", mGroupToParam);
-		intent.putExtra("ID", entry.getId());
-		intent.putExtra("CONTENT", content);
-		startActivity(intent);
-	}
-
-	private void doDestroyEntry() {
-		mDestroyEntryTask = new DestroyEntryTask(this);
-		mDestroyEntryTask.execute(mTargetEntryId);
-	}
-
-	private void goShareEntry(Entry entry) {
-		String content = entry.getContent();
-		Intent intent = new Intent(Intent.ACTION_SEND);
-		intent.setType("text/plain");
-		intent.putExtra(Intent.EXTRA_TEXT, content);
-		try {
-			startActivity(Intent.createChooser(intent, getString(R.string.title_of_action_send_intent)));
-		} catch (android.content.ActivityNotFoundException e) {
-			// FIXME
-			// 該当するActivityがないときの処理。事前にあるか調べてからインテントする方がよいか？
-		}
-	}
-
-	private void dismissDialog() {
-		if (mContextMenuDialog != null) {
-			dismissDialog(DIALOG_CONTEXT_MENU_ID);
-		}
-		if (mConfirmDestroyEntryDialog != null) {
-			dismissDialog(DIALOG_CONFIRM_DESTROY_ENTRY_ID);
-		}
-	}
-
-	private void removeDialog() {
-		removeDialog(DIALOG_CONTEXT_MENU_ID);
-		removeDialog(DIALOG_CONFIRM_DESTROY_ENTRY_ID);
-	}
-
-	private void getTimeLine() {
-		if (mGetTimeLineTask == null || mGetTimeLineTask.getStatus() != AsyncTask.Status.RUNNING) {
-			mReload.setEnabled(false);
-			mGetTimeLineTask = new GetTimeLineTask(this);
-			mGetTimeLineTask.execute();
-		}
-	}
-
-	private void cancelGetTimeLineTask() {
-		if (mGetTimeLineTask != null && mGetTimeLineTask.getStatus() == AsyncTask.Status.RUNNING) {
-			mGetTimeLineTask.cancel(true);
-		}
-		mGetTimeLineTask = null;
-		mReload.setEnabled(true);
+	protected List<Entry> doGetTimeLine() throws YouRoom4JException {
+		return mYouRoomClient.getRoomTimeLine(mGroupToParam);
 	}
 
 	/**
@@ -337,116 +95,9 @@ public class RoomTimeLineActivity extends Activity {
 	 *
 	 * @param entryList エントリ一覧
 	 */
-	private void showEntryList(List<Entry> entryList) {
+	protected void showEntryList(List<Entry> entryList) {
 		mListView.setAdapter(new RoomTimeLineListAdapter(getApplicationContext(), entryList));
 		// FIXME 進捗バー
-	}
-
-	private void afterDestroyEntry() {
-		Toast.makeText(getApplicationContext(), R.string.deleted, Toast.LENGTH_SHORT).show();
-	}
-
-	// TODO Support library使って、AsyncTaskLoader使うようにして可能なら外出してHomeTLのTaskと共通化する。
-	private static class GetTimeLineTask extends AsyncTask<Void, Integer, List<Entry>> {
-
-		private WeakReference<RoomTimeLineActivity> mRoomTimeLineActivity;
-
-		private GetTimeLineTask(RoomTimeLineActivity roomTimeLineActivity) {
-			mRoomTimeLineActivity = new WeakReference<RoomTimeLineActivity>(roomTimeLineActivity);
-		}
-
-		/*
-		 * バックグラウンドでデータを取得します。<br>
-		 */
-		@Override
-		protected List<Entry> doInBackground(Void... params) {
-			final RoomTimeLineActivity roomTimeLineActivity = mRoomTimeLineActivity.get();
-			if (roomTimeLineActivity != null) {
-				try {
-					return roomTimeLineActivity.mYouRoomClient.getRoomTimeLine(roomTimeLineActivity.mGroupToParam);
-				} catch (YouRoom4JException e) {
-					// FIXME
-					e.printStackTrace();
-				}
-			}
-			return null;
-		}
-
-		/*
-		 * データ取得後、表示を行います。<br>
-		 */
-		@Override
-		protected void onPostExecute(List<Entry> entryList) {
-			final RoomTimeLineActivity roomTimeLineActivity = mRoomTimeLineActivity.get();
-			if (roomTimeLineActivity != null) {
-				if (entryList != null) {
-					roomTimeLineActivity.showEntryList(entryList);
-					roomTimeLineActivity.mIsLoaded = true;
-				} else {
-					Toast.makeText(
-						roomTimeLineActivity.getApplicationContext(),
-						"YouRoomアクセスでエラーが発生しました。",
-						Toast.LENGTH_LONG).show();
-				}
-				roomTimeLineActivity.mReload.setEnabled(true);
-			}
-		}
-
-		@Override
-		protected void onCancelled() {
-			final RoomTimeLineActivity roomTimeLineActivity = mRoomTimeLineActivity.get();
-			if (roomTimeLineActivity != null) {
-				roomTimeLineActivity.mGetTimeLineTask = null;
-			}
-		}
-	}
-
-	// TODO Support library使って、AsyncTaskLoader使うようにして可能なら外出してHomeTLのTaskと共通化する。
-	private static class DestroyEntryTask extends AsyncTask<Long, Integer, Boolean> {
-
-		private WeakReference<RoomTimeLineActivity> mRoomTimeLineActivity;
-
-		private DestroyEntryTask(RoomTimeLineActivity roomTimeLineActivity) {
-			mRoomTimeLineActivity = new WeakReference<RoomTimeLineActivity>(roomTimeLineActivity);
-		}
-
-		@Override
-		protected Boolean doInBackground(Long... params) {
-			final RoomTimeLineActivity roomTimeLineActivity = mRoomTimeLineActivity.get();
-			if (roomTimeLineActivity != null) {
-				try {
-					roomTimeLineActivity.mYouRoomClient.destroyEntry(roomTimeLineActivity.mGroupToParam, params[0]);
-				} catch (YouRoom4JException e) {
-					// FIXME
-					e.printStackTrace();
-					return false;
-				}
-			}
-			return true;
-		}
-
-		@Override
-		protected void onPostExecute(Boolean result) {
-			final RoomTimeLineActivity roomTimeLineActivity = mRoomTimeLineActivity.get();
-			if (roomTimeLineActivity != null) {
-				if (result) {
-					roomTimeLineActivity.afterDestroyEntry();
-				} else {
-					Toast.makeText(
-						roomTimeLineActivity.getApplicationContext(),
-						"YouRoomアクセスでエラーが発生しました。",
-						Toast.LENGTH_LONG).show();
-				}
-			}
-		}
-
-		@Override
-		protected void onCancelled() {
-			final RoomTimeLineActivity roomTimeLineActivity = mRoomTimeLineActivity.get();
-			if (roomTimeLineActivity != null) {
-				roomTimeLineActivity.mDestroyEntryTask = null;
-			}
-		}
 	}
 
 }
