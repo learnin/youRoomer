@@ -112,7 +112,6 @@ public class YouRoomClient {
 	// TODO Android以外はStAXでパースする
 	// FIXME Parserを別クラスに切り出す
 	// FIXME 不要なelseif解析はぶくため、continue使う
-	// FIXME childrenは再帰で処理するようにする
 	private List<Entry> parseEntries(String responseContent) throws YouRoom4JException {
 		List<Entry> results = new ArrayList<Entry>();
 		ByteArrayInputStream byteArrayInputStream = null;
