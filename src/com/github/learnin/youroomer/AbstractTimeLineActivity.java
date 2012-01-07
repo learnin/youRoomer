@@ -248,7 +248,7 @@ public abstract class AbstractTimeLineActivity extends Activity {
 		String content = entry.getContent();
 		Intent intent = new Intent(getApplicationContext(),
 				EditEntryActivity.class);
-		intent.putExtra("ACTION", "UPDATE");
+		intent.setAction("UPDATE");
 		intent.putExtra("GROUP_TO_PARAM", entry.getParticipation().getGroup()
 				.getToParam());
 		intent.putExtra("ID", entry.getId());

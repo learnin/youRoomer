@@ -38,7 +38,7 @@ public class RoomTimeLineActivity extends AbstractTimeLineActivity {
 		mCreateEntry.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				Intent intent = new Intent(getApplicationContext(), EditEntryActivity.class);
-				intent.putExtra("ACTION", "CREATE");
+				intent.setAction("CREATE");
 				intent.putExtra("GROUP_TO_PARAM", mGroupToParam);
 				startActivity(intent);
 			}

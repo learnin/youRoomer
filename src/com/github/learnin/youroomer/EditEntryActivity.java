@@ -83,7 +83,7 @@ public class EditEntryActivity extends Activity {
 		super.onResume();
 		Intent intent = getIntent();
 		if (intent != null) {
-			mAction = intent.getStringExtra("ACTION");
+			mAction = intent.getAction();
 			mGroupToParam = intent.getStringExtra("GROUP_TO_PARAM");
 			if ("UPDATE".equals(mAction)) {
 				mEntryId = intent.getLongExtra("ID", 0L);
