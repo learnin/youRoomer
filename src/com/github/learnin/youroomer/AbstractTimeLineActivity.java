@@ -33,11 +33,11 @@ public abstract class AbstractTimeLineActivity extends Activity {
 	protected static final int DIALOG_CONTEXT_MENU_ID = 0;
 	protected static final int DIALOG_CONFIRM_DESTROY_ENTRY_ID = 1;
 
-	private static final int MENU_ITEM_EDIT_ID = 0;
-	private static final int MENU_ITEM_DESTROY_ID = 1;
-	private static final int MENU_ITEM_SHOW_COMMENT_ID = 2;
-	private static final int MENU_ITEM_DO_COMMENT_ID = 3;
-	private static final int MENU_ITEM_SHARE_ID = 4;
+	protected static final int MENU_ITEM_EDIT_ID = 0;
+	protected static final int MENU_ITEM_DESTROY_ID = 1;
+	protected static final int MENU_ITEM_SHOW_COMMENT_ID = 2;
+	protected static final int MENU_ITEM_DO_COMMENT_ID = 3;
+	protected static final int MENU_ITEM_SHARE_ID = 4;
 
 	protected YouRoomClient mYouRoomClient;
 	protected boolean mIsLoaded = false;

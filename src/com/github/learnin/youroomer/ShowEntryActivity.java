@@ -8,6 +8,7 @@ import youroom4j.YouRoom4JException;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ListView;
 
 public class ShowEntryActivity extends AbstractTimeLineActivity {
 
@@ -68,6 +69,45 @@ public class ShowEntryActivity extends AbstractTimeLineActivity {
 		default:
 			break;
 		}
+	}
+
+	@Override
+	protected void prepareContextMenuDialog(Dialog dialog, Bundle bundle) {
+		List<MenuItem> menuItemList = new ArrayList<MenuItem>();
+		Entry entry = null;
+		if (bundle != null && bundle.getSerializable("ENTRY") != null) {
+			entry = (Entry) bundle.getSerializable("ENTRY");
+		}
+		if (entry != null && entry.isUpdatable()) {
+			MenuItem menuItem = new MenuItem();
+			menuItem.setId(MENU_ITEM_EDIT_ID);
+			menuItem.setText("編集する");
+			menuItem.setEntry(entry);
+			menuItemList.add(menuItem);
+
+			MenuItem menuItem2 = new MenuItem();
+			menuItem2.setId(MENU_ITEM_DESTROY_ID);
+			menuItem2.setText("削除する");
+			menuItem2.setEntry(entry);
+			menuItemList.add(menuItem2);
+		}
+
+		MenuItem menuItem3 = new MenuItem();
+		menuItem3.setId(MENU_ITEM_DO_COMMENT_ID);
+		menuItem3.setText("コメントする");
+		menuItem3.setEntry(entry);
+		menuItemList.add(menuItem3);
+
+		MenuItem menuItem4 = new MenuItem();
+		menuItem4.setId(MENU_ITEM_SHARE_ID);
+		menuItem4.setText("このエントリを共有する");
+		menuItem4.setEntry(entry);
+		menuItemList.add(menuItem4);
+
+		ListView contextMenuItemListView = (ListView) dialog
+				.findViewById(R.id.context_menu_item_list);
+		contextMenuItemListView.setAdapter(new ContextMenuItemListAdapter(
+				getApplicationContext(), menuItemList));
 	}
 
 	protected List<Entry> doGetTimeLine() throws YouRoom4JException {
