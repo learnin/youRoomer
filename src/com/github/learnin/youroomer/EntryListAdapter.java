@@ -16,12 +16,12 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class HomeTimeLineListAdapter extends ArrayAdapter<Entry> {
+public class EntryListAdapter extends ArrayAdapter<Entry> {
 
 	private LayoutInflater mLayoutInflater;
 	private YouRoomClient mYouRoomClient;
 
-	public HomeTimeLineListAdapter(Context context, List<Entry> entryList) {
+	public EntryListAdapter(Context context, List<Entry> entryList) {
 		super(context, 0, entryList);
 		mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		SharedPreferences sharedPreferences = context.getSharedPreferences("oauth", Context.MODE_PRIVATE);
@@ -36,7 +36,6 @@ public class HomeTimeLineListAdapter extends ArrayAdapter<Entry> {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-
 		Entry entry = this.getItem(position);
 		if (entry == null) {
 			if (convertView == null) {
@@ -55,7 +54,6 @@ public class HomeTimeLineListAdapter extends ArrayAdapter<Entry> {
 			holder.mHasRead = (TextView) view.findViewById(R.id.has_read);
 			holder.mCreatedAt = (TextView) view.findViewById(R.id.created_at);
 			holder.mContent = (TextView) view.findViewById(R.id.content);
-			holder.mCommentCount = (TextView) view.findViewById(R.id.comment_count);
 			view.setTag(holder);
 		} else {
 			holder = (ViewHolder) view.getTag();
@@ -79,16 +77,7 @@ public class HomeTimeLineListAdapter extends ArrayAdapter<Entry> {
 
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		holder.mCreatedAt.setText(df.format(entry.getCreatedAt()));
-
 		holder.mContent.setText(entry.getContent());
-
-		if (entry.getDescendantsCount() > 0) {
-			String mCommentCountText = entry.getDescendantsCount() + " comment";
-			if (entry.getDescendantsCount() > 1) {
-				mCommentCountText += "s";
-			}
-			holder.mCommentCount.setText(mCommentCountText);
-		}
 		return view;
 	}
 
@@ -98,7 +87,6 @@ public class HomeTimeLineListAdapter extends ArrayAdapter<Entry> {
 		TextView mHasRead;
 		TextView mCreatedAt;
 		TextView mContent;
-		TextView mCommentCount;
 	}
 
 }

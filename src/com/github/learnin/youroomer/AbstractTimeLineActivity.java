@@ -28,8 +28,7 @@ import android.widget.Toast;
 // FIXME プログレス表示
 public abstract class AbstractTimeLineActivity extends Activity {
 
-	private static final String GET_TIME_LINE_TASK_STATUS_RUNNING =
-		"com.github.learnin.youroomer.AbstractTimeLineActivity.GET_TIME_LINE_TASK_STATUS_RUNNING";
+	private static final String GET_TIME_LINE_TASK_STATUS_RUNNING = "com.github.learnin.youroomer.AbstractTimeLineActivity.GET_TIME_LINE_TASK_STATUS_RUNNING";
 
 	protected static final int DIALOG_CONTEXT_MENU_ID = 0;
 	protected static final int DIALOG_CONFIRM_DESTROY_ENTRY_ID = 1;
@@ -55,10 +54,12 @@ public abstract class AbstractTimeLineActivity extends Activity {
 
 	protected void setupYouRoomClient() {
 		// FIXME YouRoomClient使用箇所で毎回以下を書くのは面倒。共通化するなり保持させるなりする。
-		SharedPreferences sharedPreferences = getSharedPreferences("oauth", Context.MODE_PRIVATE);
+		SharedPreferences sharedPreferences = getSharedPreferences("oauth",
+				Context.MODE_PRIVATE);
 		OAuthTokenCredential oAuthTokenCredential = new OAuthTokenCredential();
 		oAuthTokenCredential.setToken(sharedPreferences.getString("token", ""));
-		oAuthTokenCredential.setTokenSecret(sharedPreferences.getString("tokenSecret", ""));
+		oAuthTokenCredential.setTokenSecret(sharedPreferences.getString(
+				"tokenSecret", ""));
 		mYouRoomClient = YouRoomClientBuilder.createYouRoomClient();
 		mYouRoomClient.setOAuthTokenCredential(oAuthTokenCredential);
 	}
@@ -66,7 +67,8 @@ public abstract class AbstractTimeLineActivity extends Activity {
 	protected void setupView(final Bundle savedInstanceState) {
 		mListView = (ListView) findViewById(R.id.entry_list);
 		mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
 				ListView listView = (ListView) parent;
 				Entry entry = (Entry) listView.getItemAtPosition(position);
 				Bundle bundle = new Bundle();
@@ -75,7 +77,8 @@ public abstract class AbstractTimeLineActivity extends Activity {
 				}
 				bundle.putSerializable("ENTRY", entry);
 				mTargetEntryId = entry.getId();
-				mTargetGroupToParam = entry.getParticipation().getGroup().getToParam();
+				mTargetGroupToParam = entry.getParticipation().getGroup()
+						.getToParam();
 				showDialog(DIALOG_CONTEXT_MENU_ID, bundle);
 			}
 		});
@@ -104,7 +107,8 @@ public abstract class AbstractTimeLineActivity extends Activity {
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		if (mGetTimeLineTask != null && mGetTimeLineTask.getStatus() == AsyncTask.Status.RUNNING) {
+		if (mGetTimeLineTask != null
+				&& mGetTimeLineTask.getStatus() == AsyncTask.Status.RUNNING) {
 			outState.putBoolean(GET_TIME_LINE_TASK_STATUS_RUNNING, true);
 		} else {
 			outState.putBoolean(GET_TIME_LINE_TASK_STATUS_RUNNING, false);
@@ -120,70 +124,77 @@ public abstract class AbstractTimeLineActivity extends Activity {
 	}
 
 	protected Dialog createContextMenuDialog(final Bundle bundle) {
-		final View ContextMenuDialogView = getLayoutInflater().inflate(R.layout.context_menu_dialog, null);
-		AlertDialog.Builder contextMenuDialogBuilder = new AlertDialog.Builder(this);
-		mContextMenuDialog =
-			contextMenuDialogBuilder
+		final View ContextMenuDialogView = getLayoutInflater().inflate(
+				R.layout.context_menu_dialog, null);
+		AlertDialog.Builder contextMenuDialogBuilder = new AlertDialog.Builder(
+				this);
+		mContextMenuDialog = contextMenuDialogBuilder
 				.setCancelable(true)
-				.setPositiveButton(getString(R.string.close), new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.cancel();
-					}
-				})
-				.setView(ContextMenuDialogView)
-				.create();
+				.setPositiveButton(getString(R.string.close),
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int which) {
+								dialog.cancel();
+							}
+						}).setView(ContextMenuDialogView).create();
 
-		ListView contextMenuItemListView = (ListView) ContextMenuDialogView.findViewById(R.id.context_menu_item_list);
-		contextMenuItemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				ListView listView = (ListView) parent;
-				MenuItem menuItem = (MenuItem) listView.getItemAtPosition(position);
-				Entry entry = menuItem.getEntry();
-				if (entry != null) {
-					switch (menuItem.getId()) {
-					case MENU_ITEM_EDIT_ID:
-						goEditEntry(entry);
-						break;
-					case MENU_ITEM_DESTROY_ID:
-						showDialog(DIALOG_CONFIRM_DESTROY_ENTRY_ID, bundle);
-						break;
-					case MENU_ITEM_SHOW_COMMENT_ID:
-						// FIXME 詳細画面へインテント
-						break;
-					case MENU_ITEM_DO_COMMENT_ID:
-						// FIXME コメント入力画面へインテント
-						break;
-					case MENU_ITEM_SHARE_ID:
-						goShareEntry(entry);
-						break;
-					default:
-						break;
+		ListView contextMenuItemListView = (ListView) ContextMenuDialogView
+				.findViewById(R.id.context_menu_item_list);
+		contextMenuItemListView
+				.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+					public void onItemClick(AdapterView<?> parent, View view,
+							int position, long id) {
+						ListView listView = (ListView) parent;
+						MenuItem menuItem = (MenuItem) listView
+								.getItemAtPosition(position);
+						Entry entry = menuItem.getEntry();
+						if (entry != null) {
+							switch (menuItem.getId()) {
+							case MENU_ITEM_EDIT_ID:
+								goEditEntry(entry);
+								break;
+							case MENU_ITEM_DESTROY_ID:
+								showDialog(DIALOG_CONFIRM_DESTROY_ENTRY_ID,
+										bundle);
+								break;
+							case MENU_ITEM_SHOW_COMMENT_ID:
+								goShowComment(entry);
+								break;
+							case MENU_ITEM_DO_COMMENT_ID:
+								// FIXME コメント入力画面へインテント
+								break;
+							case MENU_ITEM_SHARE_ID:
+								goShareEntry(entry);
+								break;
+							default:
+								break;
+							}
+						}
 					}
-				}
-			}
-		});
+				});
 		return mContextMenuDialog;
 	}
 
 	protected Dialog createConfirmDestroyEntryDialog() {
-		AlertDialog.Builder confirmDestroyEntryDialogBuilder = new AlertDialog.Builder(this);
-		mConfirmDestroyEntryDialog =
-			confirmDestroyEntryDialogBuilder
+		AlertDialog.Builder confirmDestroyEntryDialogBuilder = new AlertDialog.Builder(
+				this);
+		mConfirmDestroyEntryDialog = confirmDestroyEntryDialogBuilder
 				.setMessage(R.string.confirm_delete_entry)
 				.setCancelable(true)
-				.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						doDestroyEntry();
-						dismissDialog(DIALOG_CONTEXT_MENU_ID);
-					}
-				})
-				.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						dialog.cancel();
-						dismissDialog(DIALOG_CONTEXT_MENU_ID);
-					}
-				})
-				.create();
+				.setPositiveButton(R.string.delete,
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int id) {
+								doDestroyEntry();
+								dismissDialog(DIALOG_CONTEXT_MENU_ID);
+							}
+						})
+				.setNegativeButton(R.string.cancel,
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int id) {
+								dialog.cancel();
+								dismissDialog(DIALOG_CONTEXT_MENU_ID);
+							}
+						}).create();
 		return mConfirmDestroyEntryDialog;
 	}
 
@@ -207,7 +218,7 @@ public abstract class AbstractTimeLineActivity extends Activity {
 			menuItemList.add(menuItem2);
 		}
 
-		if (entry != null && entry.getChildren() != null && !entry.getChildren().isEmpty()) {
+		if (entry != null && entry.getDescendantsCount() > 0) {
 			MenuItem menuItem3 = new MenuItem();
 			menuItem3.setId(MENU_ITEM_SHOW_COMMENT_ID);
 			menuItem3.setText("コメントを見る");
@@ -227,17 +238,30 @@ public abstract class AbstractTimeLineActivity extends Activity {
 		menuItem5.setEntry(entry);
 		menuItemList.add(menuItem5);
 
-		ListView contextMenuItemListView = (ListView) dialog.findViewById(R.id.context_menu_item_list);
-		contextMenuItemListView.setAdapter(new ContextMenuItemListAdapter(getApplicationContext(), menuItemList));
+		ListView contextMenuItemListView = (ListView) dialog
+				.findViewById(R.id.context_menu_item_list);
+		contextMenuItemListView.setAdapter(new ContextMenuItemListAdapter(
+				getApplicationContext(), menuItemList));
 	}
 
 	private void goEditEntry(Entry entry) {
 		String content = entry.getContent();
-		Intent intent = new Intent(getApplicationContext(), EditEntryActivity.class);
+		Intent intent = new Intent(getApplicationContext(),
+				EditEntryActivity.class);
 		intent.putExtra("ACTION", "UPDATE");
-		intent.putExtra("GROUP_TO_PARAM", entry.getParticipation().getGroup().getToParam());
+		intent.putExtra("GROUP_TO_PARAM", entry.getParticipation().getGroup()
+				.getToParam());
 		intent.putExtra("ID", entry.getId());
 		intent.putExtra("CONTENT", content);
+		startActivity(intent);
+	}
+
+	private void goShowComment(Entry entry) {
+		Intent intent = new Intent(getApplicationContext(),
+				ShowEntryActivity.class);
+		intent.putExtra("GROUP_TO_PARAM", entry.getParticipation().getGroup()
+				.getToParam());
+		intent.putExtra("ID", entry.getId());
 		startActivity(intent);
 	}
 
@@ -247,7 +271,8 @@ public abstract class AbstractTimeLineActivity extends Activity {
 		intent.setType("text/plain");
 		intent.putExtra(Intent.EXTRA_TEXT, content);
 		try {
-			startActivity(Intent.createChooser(intent, getString(R.string.title_of_action_send_intent)));
+			startActivity(Intent.createChooser(intent,
+					getString(R.string.title_of_action_send_intent)));
 		} catch (android.content.ActivityNotFoundException e) {
 			// FIXME
 			// 該当するActivityがないときの処理。事前にあるか調べてからインテントする方がよいか？
@@ -274,7 +299,8 @@ public abstract class AbstractTimeLineActivity extends Activity {
 	}
 
 	protected void doGetTimeLineTask() {
-		if (mGetTimeLineTask == null || mGetTimeLineTask.getStatus() != AsyncTask.Status.RUNNING) {
+		if (mGetTimeLineTask == null
+				|| mGetTimeLineTask.getStatus() != AsyncTask.Status.RUNNING) {
 			mReload.setEnabled(false);
 			mGetTimeLineTask = new GetTimeLineTask(this);
 			mGetTimeLineTask.execute();
@@ -282,7 +308,8 @@ public abstract class AbstractTimeLineActivity extends Activity {
 	}
 
 	protected void cancelGetTimeLineTask() {
-		if (mGetTimeLineTask != null && mGetTimeLineTask.getStatus() == AsyncTask.Status.RUNNING) {
+		if (mGetTimeLineTask != null
+				&& mGetTimeLineTask.getStatus() == AsyncTask.Status.RUNNING) {
 			mGetTimeLineTask.cancel(true);
 		}
 		mGetTimeLineTask = null;
@@ -294,21 +321,25 @@ public abstract class AbstractTimeLineActivity extends Activity {
 	/**
 	 * エントリ一覧を表示します。<br>
 	 *
-	 * @param entryList エントリ一覧
+	 * @param entryList
+	 *            エントリ一覧
 	 */
 	abstract protected void showEntryList(List<Entry> entryList);
 
 	private void afterDestroyEntry() {
-		Toast.makeText(getApplicationContext(), R.string.deleted, Toast.LENGTH_SHORT).show();
+		Toast.makeText(getApplicationContext(), R.string.deleted,
+				Toast.LENGTH_SHORT).show();
 	}
 
 	// TODO Support library使って、AsyncTaskLoader使うようにして可能なら外出してHomeTLのTaskと共通化する。
-	private static class GetTimeLineTask extends AsyncTask<Void, Integer, List<Entry>> {
+	private static class GetTimeLineTask extends
+			AsyncTask<Void, Integer, List<Entry>> {
 
 		private WeakReference<AbstractTimeLineActivity> mTimeLineActivity;
 
 		private GetTimeLineTask(AbstractTimeLineActivity timeLineActivity) {
-			mTimeLineActivity = new WeakReference<AbstractTimeLineActivity>(timeLineActivity);
+			mTimeLineActivity = new WeakReference<AbstractTimeLineActivity>(
+					timeLineActivity);
 		}
 
 		/*
@@ -316,7 +347,8 @@ public abstract class AbstractTimeLineActivity extends Activity {
 		 */
 		@Override
 		protected List<Entry> doInBackground(Void... params) {
-			final AbstractTimeLineActivity timeLineActivity = mTimeLineActivity.get();
+			final AbstractTimeLineActivity timeLineActivity = mTimeLineActivity
+					.get();
 			if (timeLineActivity != null) {
 				try {
 					return timeLineActivity.doGetTimeLine();
@@ -333,16 +365,16 @@ public abstract class AbstractTimeLineActivity extends Activity {
 		 */
 		@Override
 		protected void onPostExecute(List<Entry> entryList) {
-			final AbstractTimeLineActivity timeLineActivity = mTimeLineActivity.get();
+			final AbstractTimeLineActivity timeLineActivity = mTimeLineActivity
+					.get();
 			if (timeLineActivity != null) {
 				if (entryList != null) {
 					timeLineActivity.showEntryList(entryList);
 					timeLineActivity.mIsLoaded = true;
 				} else {
-					Toast.makeText(
-						timeLineActivity.getApplicationContext(),
-						"YouRoomアクセスでエラーが発生しました。",
-						Toast.LENGTH_LONG).show();
+					Toast.makeText(timeLineActivity.getApplicationContext(),
+							"YouRoomアクセスでエラーが発生しました。", Toast.LENGTH_LONG)
+							.show();
 				}
 				timeLineActivity.mReload.setEnabled(true);
 			}
@@ -350,7 +382,8 @@ public abstract class AbstractTimeLineActivity extends Activity {
 
 		@Override
 		protected void onCancelled() {
-			final AbstractTimeLineActivity timeLineActivity = mTimeLineActivity.get();
+			final AbstractTimeLineActivity timeLineActivity = mTimeLineActivity
+					.get();
 			if (timeLineActivity != null) {
 				timeLineActivity.mGetTimeLineTask = null;
 			}
@@ -358,20 +391,24 @@ public abstract class AbstractTimeLineActivity extends Activity {
 	}
 
 	// TODO Support library使って、AsyncTaskLoader使うようにして可能なら外出してHomeTLのTaskと共通化する。
-	private static class DestroyEntryTask extends AsyncTask<Long, Integer, Boolean> {
+	private static class DestroyEntryTask extends
+			AsyncTask<Long, Integer, Boolean> {
 
 		private WeakReference<AbstractTimeLineActivity> mTimeLineActivity;
 
 		private DestroyEntryTask(AbstractTimeLineActivity timeLineActivity) {
-			mTimeLineActivity = new WeakReference<AbstractTimeLineActivity>(timeLineActivity);
+			mTimeLineActivity = new WeakReference<AbstractTimeLineActivity>(
+					timeLineActivity);
 		}
 
 		@Override
 		protected Boolean doInBackground(Long... params) {
-			final AbstractTimeLineActivity timeLineActivity = mTimeLineActivity.get();
+			final AbstractTimeLineActivity timeLineActivity = mTimeLineActivity
+					.get();
 			if (timeLineActivity != null) {
 				try {
-					timeLineActivity.mYouRoomClient.destroyEntry(timeLineActivity.mTargetGroupToParam, params[0]);
+					timeLineActivity.mYouRoomClient.destroyEntry(
+							timeLineActivity.mTargetGroupToParam, params[0]);
 				} catch (YouRoom4JException e) {
 					// FIXME
 					e.printStackTrace();
@@ -383,22 +420,23 @@ public abstract class AbstractTimeLineActivity extends Activity {
 
 		@Override
 		protected void onPostExecute(Boolean result) {
-			final AbstractTimeLineActivity timeLineActivity = mTimeLineActivity.get();
+			final AbstractTimeLineActivity timeLineActivity = mTimeLineActivity
+					.get();
 			if (timeLineActivity != null) {
 				if (result) {
 					timeLineActivity.afterDestroyEntry();
 				} else {
-					Toast.makeText(
-						timeLineActivity.getApplicationContext(),
-						"YouRoomアクセスでエラーが発生しました。",
-						Toast.LENGTH_LONG).show();
+					Toast.makeText(timeLineActivity.getApplicationContext(),
+							"YouRoomアクセスでエラーが発生しました。", Toast.LENGTH_LONG)
+							.show();
 				}
 			}
 		}
 
 		@Override
 		protected void onCancelled() {
-			final AbstractTimeLineActivity timeLineActivity = mTimeLineActivity.get();
+			final AbstractTimeLineActivity timeLineActivity = mTimeLineActivity
+					.get();
 			if (timeLineActivity != null) {
 				timeLineActivity.mDestroyEntryTask = null;
 			}

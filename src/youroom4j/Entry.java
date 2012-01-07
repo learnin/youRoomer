@@ -17,8 +17,12 @@ public class Entry implements Serializable {
 	private long rootId;
 	private Participation participation;
 	private Attachment attachment;
+
+	// コメントの総数(ルートエントリ以外はおそらく常に0)
+	private int descendantsCount = 0;
+
 	private List<Entry> children;
-	private Entry parent;
+	private long parentId;
 
 	/**
 	 * idを取得します。
@@ -201,6 +205,22 @@ public class Entry implements Serializable {
 	}
 
 	/**
+	 * descendantsCountを取得します。
+	 * @return descendantsCount
+	 */
+	public int getDescendantsCount() {
+	    return descendantsCount;
+	}
+
+	/**
+	 * descendantsCountを設定します。
+	 * @param descendantsCount descendantsCount
+	 */
+	public void setDescendantsCount(int descendantsCount) {
+	    this.descendantsCount = descendantsCount;
+	}
+
+	/**
 	 * childrenを取得します。
 	 *
 	 * @return children
@@ -219,21 +239,21 @@ public class Entry implements Serializable {
 	}
 
 	/**
-	 * parentを取得します。
+	 * parentIdを取得します。
 	 *
-	 * @return parent
+	 * @return parentId
 	 */
-	public Entry getParent() {
-		return parent;
+	public long getParentId() {
+		return parentId;
 	}
 
 	/**
-	 * parentを設定します。
+	 * parentIdを設定します。
 	 *
-	 * @param parent parent
+	 * @param long parentId
 	 */
-	public void setParent(Entry parent) {
-		this.parent = parent;
+	public void setParentId(long parentId) {
+		this.parentId = parentId;
 	}
 
 }

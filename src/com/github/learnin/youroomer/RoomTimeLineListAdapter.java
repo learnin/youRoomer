@@ -81,9 +81,9 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 
 		holder.mContent.setText(entry.getContent());
 
-		if (entry.getChildren() != null) {
-			String mCommentCountText = entry.getChildren().size() + " comment";
-			if (entry.getChildren().size() > 1) {
+		if (entry.getDescendantsCount() > 0) {
+			String mCommentCountText = entry.getDescendantsCount() + " comment";
+			if (entry.getDescendantsCount() > 1) {
 				mCommentCountText += "s";
 			}
 			holder.mCommentCount.setText(mCommentCountText);

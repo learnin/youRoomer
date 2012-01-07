@@ -6,6 +6,7 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import org.apache.http.HttpStatus;
 import org.xmlpull.v1.XmlPullParser;
@@ -111,6 +112,7 @@ public class YouRoomClient {
 	// TODO Android以外はStAXでパースする
 	// FIXME Parserを別クラスに切り出す
 	// FIXME 不要なelseif解析はぶくため、continue使う
+	// FIXME childrenは再帰で処理するようにする
 	private List<Entry> parseEntries(String responseContent) throws YouRoom4JException {
 		List<Entry> results = new ArrayList<Entry>();
 		ByteArrayInputStream byteArrayInputStream = null;
@@ -125,12 +127,13 @@ public class YouRoomClient {
 			Participation participation = null;
 			Group group = null;
 			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
+			Stack<Entry> parentStack = new Stack<Entry>();
 			while (eventType != XmlPullParser.END_DOCUMENT) {
 				String tag = null;
 				switch (eventType) {
 				case XmlPullParser.START_TAG:
 					tag = parser.getName();
-					if ("entry".equals(tag) && parentTag == null) {
+					if (("entry".equals(tag) && parentTag == null) || ("child".equals(tag) && "entry".equals(parentTag))) {
 						entry = new Entry();
 						parentTag = "entry";
 					} else if (entry != null && "entry".equals(parentTag)) {
@@ -147,31 +150,15 @@ public class YouRoomClient {
 						} else if ("level".equals(tag)) {
 							entry.setLevel(Integer.parseInt(parser.nextText()));
 						} else if ("parent-id".equals(tag) && !"true".equals(parser.getAttributeValue(null, "nil"))) {
-							Entry parent = new Entry();
-							parent.setId(Long.parseLong(parser.nextText()));
-							List<Entry> children = new ArrayList<Entry>();
-							children.add(entry);
-							parent.setChildren(children);
-							entry.setParent(parent);
+							entry.setParentId(Long.parseLong(parser.nextText()));
 						} else if ("content".equals(tag)) {
 							entry.setContent(parser.nextText());
 						} else if ("has-read".equals(tag)) {
 							entry.setHasRead(Boolean.parseBoolean(parser.nextText()));
 						} else if ("descendants-count".equals(tag)) {
-							// FIXME
-							// モデルにマッピングする形でつくるとこうなるが、実際にはホームTLで表示に必要なのは子供の数のみなのでパフォーマンスやリソース上、ムダが多すぎるので、
-							// どうするか要検討。画面に表示するプロパティだけをもつForm的なものを導入してもいいかも。(子供(コメント)数は<descendants-count>で返されるので)
-							// ただ、そうするとFormはアプリに依存するのでyouRoom4jとしてはコールバックでやってもらうとかしかなくなってしまい、使い勝手がさがってしまう。
-							// JSON/XMLの内容を素直にそのままエンティティにマッピングすればライブラリとしてはいけるが、OOP的にやるのとどっちがいいかは
-							// コメント表示時の実装がどうなるか等もみながら検討する。
 							int descendantsCount = Integer.parseInt(parser.nextText());
 							if (descendantsCount > 0) {
-								List<Entry> children = new ArrayList<Entry>();
-								for (int i = 0; i < descendantsCount; i++) {
-									Entry child = new Entry();
-									children.add(child);
-								}
-								entry.setChildren(children);
+								entry.setDescendantsCount(descendantsCount);
 							}
 						} else if ("unread-comment-ids".equals(tag)) {
 							// FIXME
@@ -181,6 +168,8 @@ public class YouRoomClient {
 						} else if ("participation".equals(tag)) {
 							parentTag = "participation";
 							participation = new Participation();
+						} else if ("children".equals(tag) && "array".equals(parser.getAttributeValue(null, "type"))) {
+							parentStack.push(entry);
 						}
 					} else if (attachment != null && "attachment".equals(parentTag)) {
 						if ("original-filename".equals(tag)) {
@@ -224,6 +213,16 @@ public class YouRoomClient {
 					} else if ("attachment".equals(tag)) {
 						entry.setAttachment(attachment);
 						parentTag = "entry";
+					} else if ("child".equals(tag)) {
+						Entry parent = parentStack.peek();
+						if (parent != null) {
+							if (parent.getChildren() == null) {
+								parent.setChildren(new ArrayList<Entry>());
+							}
+							parent.getChildren().add(entry);
+						}
+					} else if ("children".equals(tag)) {
+						entry = parentStack.pop();
 					} else if ("entry".equals(tag)) {
 						results.add(entry);
 						parentTag = null;
@@ -386,7 +385,6 @@ public class YouRoomClient {
 
 		String url = "https://www.youroom.in/r/" + groupParam + "/entries/" + id;
 		HttpRequestEntity requestEntity = new HttpRequestEntity();
-		requestEntity.setUrl(url);
 		requestEntity.setMethod(HttpRequestEntity.DELETE);
 		requestEntity.setUrl(url + "?format=xml");
 		oAuthClient.addOAuthTokenCredentialToRequestEntity(requestEntity, url, paramList);
@@ -395,6 +393,26 @@ public class YouRoomClient {
 		try {
 			String responseContent = client.execute(requestEntity);
 			Log.d("", responseContent);
+			return parseEntries(responseContent).get(0);
+		} catch (IOException e) {
+			throw new YouRoom4JException(e);
+		}
+	}
+
+	public Entry showEntry(String groupParam, long id) throws YouRoom4JException {
+		List<KeyValueString> paramList = new ArrayList<KeyValueString>();
+		paramList.add(new KeyValueString("format", "xml"));
+
+		String url = "https://www.youroom.in/r/" + groupParam + "/entries/" + id;
+		HttpRequestEntity requestEntity = new HttpRequestEntity();
+		requestEntity.setMethod(HttpRequestEntity.GET);
+		requestEntity.setUrl(url + "?format=xml");
+		oAuthClient.addOAuthTokenCredentialToRequestEntity(requestEntity, url, paramList);
+
+		HttpRequestClient client = new HttpRequestClientImpl(5000, 10000, 0, Charset.forName("UTF-8"));
+		try {
+			String responseContent = client.execute(requestEntity);
+			System.out.println(responseContent);
 			return parseEntries(responseContent).get(0);
 		} catch (IOException e) {
 			throw new YouRoom4JException(e);
