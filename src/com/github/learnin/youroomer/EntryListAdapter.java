@@ -9,17 +9,20 @@ import youroom4j.oauth.OAuthTokenCredential;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class EntryListAdapter extends ArrayAdapter<Entry> {
 
 	private LayoutInflater mLayoutInflater;
 	private YouRoomClient mYouRoomClient;
+	final private float mScale = getContext().getResources().getDisplayMetrics().density;
 
 	public EntryListAdapter(Context context, List<Entry> entryList) {
 		super(context, 0, entryList);
@@ -49,6 +52,7 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 
 		if (convertView == null) {
 			view = mLayoutInflater.inflate(R.layout.entry_row, null);
+			holder.mLinearLayout = (LinearLayout) view.findViewById(R.id.entry_container);
 			holder.mUserImage = (ImageView) view.findViewById(R.id.user_image);
 			holder.mUsername = (TextView) view.findViewById(R.id.username);
 			holder.mHasRead = (TextView) view.findViewById(R.id.has_read);
@@ -58,6 +62,42 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 		} else {
 			holder = (ViewHolder) view.getTag();
 		}
+
+		// 背景色、文字色の設定
+		int level = entry.getLevel();
+		int backgroundColor = Color.WHITE;
+		switch (level) {
+		case 1:
+			backgroundColor = 0xffd8ea9b;
+			break;
+		case 2:
+			backgroundColor = 0xffd1efad;
+			break;
+		case 3:
+			backgroundColor = 0xffcdf3e0;
+			break;
+		case 4:
+			backgroundColor = 0xffa4e8df;
+			break;
+		case 5:
+			backgroundColor = 0xff70deeb;
+			break;
+		case 6:
+			backgroundColor = 0xffa2c7ff;
+			break;
+		default:
+			break;
+		}
+		holder.mLinearLayout.setBackgroundColor(backgroundColor);
+		holder.mUsername.setTextColor(Color.BLACK);
+		holder.mHasRead.setTextColor(Color.BLACK);
+		holder.mCreatedAt.setTextColor(Color.BLACK);
+		holder.mContent.setTextColor(Color.BLACK);
+
+		// コメントのインデント
+		float paddingLeftDip = entry.getLevel() * 10.0f;
+		int paddingLeftPx = (int) (paddingLeftDip * mScale + 0.5f);
+		holder.mLinearLayout.setPadding(paddingLeftPx, 0, 0, 0);
 
 		String userImageURI = entry.getParticipation().getUserImageURI();
 		Bitmap bitmap = UserImageCache.getUserImage(userImageURI);
@@ -82,6 +122,7 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 	}
 
 	private static class ViewHolder {
+		LinearLayout mLinearLayout;
 		ImageView mUserImage;
 		TextView mUsername;
 		TextView mHasRead;

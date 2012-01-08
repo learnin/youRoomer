@@ -7,6 +7,7 @@ import youroom4j.Entry;
 import youroom4j.YouRoom4JException;
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.drawable.PaintDrawable;
 import android.os.Bundle;
 import android.widget.ListView;
 
@@ -28,6 +29,12 @@ public class ShowEntryActivity extends AbstractTimeLineActivity {
 		setContentView(R.layout.show_entry);
 		setupView(savedInstanceState);
 		setupYouRoomClient();
+	}
+
+	protected void setupView(final Bundle savedInstanceState) {
+		super.setupView(savedInstanceState);
+		// FIXME xml指定にする
+		mListView.setSelector(new PaintDrawable(0x80444444));
 	}
 
 	@Override
@@ -104,10 +111,8 @@ public class ShowEntryActivity extends AbstractTimeLineActivity {
 		menuItem4.setEntry(entry);
 		menuItemList.add(menuItem4);
 
-		ListView contextMenuItemListView = (ListView) dialog
-				.findViewById(R.id.context_menu_item_list);
-		contextMenuItemListView.setAdapter(new ContextMenuItemListAdapter(
-				getApplicationContext(), menuItemList));
+		ListView contextMenuItemListView = (ListView) dialog.findViewById(R.id.context_menu_item_list);
+		contextMenuItemListView.setAdapter(new ContextMenuItemListAdapter(getApplicationContext(), menuItemList));
 	}
 
 	protected List<Entry> doGetTimeLine() throws YouRoom4JException {
@@ -134,12 +139,10 @@ public class ShowEntryActivity extends AbstractTimeLineActivity {
 	/**
 	 * エントリ一覧を表示します。<br>
 	 *
-	 * @param entryList
-	 *            エントリ一覧
+	 * @param entryList エントリ一覧
 	 */
 	protected void showEntryList(List<Entry> entryList) {
-		mListView.setAdapter(new EntryListAdapter(getApplicationContext(),
-				entryList));
+		mListView.setAdapter(new EntryListAdapter(getApplicationContext(), entryList));
 		// FIXME 進捗バー
 	}
 
