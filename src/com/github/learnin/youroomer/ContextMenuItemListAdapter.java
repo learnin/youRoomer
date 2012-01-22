@@ -29,10 +29,11 @@ public class ContextMenuItemListAdapter extends ArrayAdapter<MenuItem> {
 		}
 
 		View view = convertView;
-		ViewHolder holder = new ViewHolder();
+		ViewHolder holder;
 
 		if (convertView == null) {
 			view = mLayoutInflater.inflate(R.layout.context_menu_item_row, null);
+			holder = new ViewHolder();
 			holder.mText = (TextView) view.findViewById(R.id.text);
 			view.setTag(holder);
 		} else {

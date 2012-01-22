@@ -46,10 +46,11 @@ public class HomeTimeLineListAdapter extends ArrayAdapter<Entry> {
 		}
 
 		View view = convertView;
-		ViewHolder holder = new ViewHolder();
+		ViewHolder holder;
 
 		if (convertView == null) {
 			view = mLayoutInflater.inflate(R.layout.entry_row, null);
+			holder = new ViewHolder();
 			holder.mUserImage = (ImageView) view.findViewById(R.id.user_image);
 			holder.mUsername = (TextView) view.findViewById(R.id.username);
 			holder.mHasRead = (TextView) view.findViewById(R.id.has_read);

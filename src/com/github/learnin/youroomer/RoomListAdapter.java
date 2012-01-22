@@ -31,10 +31,11 @@ public class RoomListAdapter extends ArrayAdapter<Group> {
 		}
 
 		View view = convertView;
-		ViewHolder holder = new ViewHolder();
+		ViewHolder holder;
 
 		if (convertView == null) {
 			view = mLayoutInflater.inflate(R.layout.room_row, null);
+			holder = new ViewHolder();
 			holder.mName = (TextView) view.findViewById(R.id.name);
 			holder.mUpdatedAt = (TextView) view.findViewById(R.id.updated_at);
 			view.setTag(holder);

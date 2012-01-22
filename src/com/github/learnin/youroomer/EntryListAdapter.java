@@ -48,10 +48,11 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 		}
 
 		View view = convertView;
-		ViewHolder holder = new ViewHolder();
+		ViewHolder holder;
 
 		if (convertView == null) {
 			view = mLayoutInflater.inflate(R.layout.entry_row, null);
+			holder = new ViewHolder();
 			holder.mLinearLayout = (LinearLayout) view.findViewById(R.id.entry_container);
 			holder.mUserImage = (ImageView) view.findViewById(R.id.user_image);
 			holder.mUsername = (TextView) view.findViewById(R.id.username);
