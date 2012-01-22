@@ -7,6 +7,7 @@ import youroom4j.Entry;
 import youroom4j.YouRoom4JException;
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.PaintDrawable;
 import android.os.Bundle;
 import android.widget.ListView;
@@ -34,7 +35,9 @@ public class ShowEntryActivity extends AbstractTimeLineActivity {
 	protected void setupView(final Bundle savedInstanceState) {
 		super.setupView(savedInstanceState);
 		// FIXME xml指定にする
-		mListView.setSelector(new PaintDrawable(0x80444444));
+		Drawable drawable = new PaintDrawable(0x80444444);
+		mListView.setSelector(drawable);
+		drawable.setCallback(null);
 	}
 
 	@Override
