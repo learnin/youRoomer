@@ -132,7 +132,8 @@ public class YouRoomClient {
 				switch (eventType) {
 				case XmlPullParser.START_TAG:
 					tag = parser.getName();
-					if (("entry".equals(tag) && parentTag == null) || ("child".equals(tag) && "entry".equals(parentTag))) {
+					if (("entry".equals(tag) && parentTag == null)
+						|| ("child".equals(tag) && "entry".equals(parentTag))) {
 						entry = new Entry();
 						parentTag = "entry";
 					} else if (entry != null && "entry".equals(parentTag)) {
@@ -160,7 +161,15 @@ public class YouRoomClient {
 								entry.setDescendantsCount(descendantsCount);
 							}
 						} else if ("unread-comment-ids".equals(tag)) {
-							// FIXME
+							String unreadCommentIdsString = parser.nextText();
+							if (unreadCommentIdsString.length() > 0) {
+								String[] unreadCommentIds = unreadCommentIdsString.split(",");
+								List<Long> unreadCommentIdList = new ArrayList<Long>();
+								for (String unreadCommentId : unreadCommentIds) {
+									unreadCommentIdList.add(Long.valueOf(unreadCommentId));
+								}
+								entry.setUnreadCommentIds(unreadCommentIdList);
+							}
 						} else if ("attachment".equals(tag)) {
 							parentTag = "attachment";
 							attachment = new Attachment();

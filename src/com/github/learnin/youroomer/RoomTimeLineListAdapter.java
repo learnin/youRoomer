@@ -18,7 +18,7 @@ import android.widget.TextView;
 
 public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 
-    private static final String EMPTY_STRING = "";
+	private static final String EMPTY_STRING = "";
 	private LayoutInflater mLayoutInflater;
 	private YouRoomClient mYouRoomClient;
 
@@ -53,7 +53,6 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 			holder = new ViewHolder();
 			holder.mUserImage = (ImageView) view.findViewById(R.id.user_image);
 			holder.mUsername = (TextView) view.findViewById(R.id.username);
-			holder.mHasRead = (TextView) view.findViewById(R.id.has_read);
 			holder.mCreatedAt = (TextView) view.findViewById(R.id.created_at);
 			holder.mContent = (TextView) view.findViewById(R.id.content);
 			holder.mCommentCount = (TextView) view.findViewById(R.id.comment_count);
@@ -73,13 +72,6 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 
 		holder.mUsername.setText(entry.getParticipation().getName());
 
-		// FIXME 未読表示仮実装。画像にする
-		if (entry.hasRead()) {
-			holder.mHasRead.setVisibility(View.INVISIBLE);
-		} else {
-		    holder.mHasRead.setVisibility(View.VISIBLE);
-		}
-
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		holder.mCreatedAt.setText(df.format(entry.getCreatedAt()));
 
@@ -90,9 +82,12 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 			if (entry.getDescendantsCount() > 1) {
 				mCommentCountText += "s";
 			}
+			if (entry.getUnreadCommentIds() != null && !entry.getUnreadCommentIds().isEmpty()) {
+				mCommentCountText += "(" + entry.getUnreadCommentIds().size() + " unread)";
+			}
 			holder.mCommentCount.setText(mCommentCountText);
 		} else {
-		    holder.mCommentCount.setText(EMPTY_STRING);
+			holder.mCommentCount.setText(EMPTY_STRING);
 		}
 		return view;
 	}
@@ -100,7 +95,6 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 	private static class ViewHolder {
 		ImageView mUserImage;
 		TextView mUsername;
-		TextView mHasRead;
 		TextView mCreatedAt;
 		TextView mContent;
 		TextView mCommentCount;

@@ -12,14 +12,20 @@ public class Entry implements Serializable {
 	private Date createdAt;
 	private Date updatedAt;
 	private boolean canUpdate;
+
+	/** true:アーカイブ false:非アーカイブ */
 	private boolean hasRead;
+
 	private int level;
 	private long rootId;
 	private Participation participation;
 	private Attachment attachment;
 
-	// コメントの総数(ルートエントリ以外はおそらく常に0)
+	/** コメントの総数(ルートエントリ以外はおそらく常に0) */
 	private int descendantsCount = 0;
+
+	/** 未読コメントのID(ルートエントリ以外はおそらく常にnull) */
+	private List<Long> unreadCommentIds;
 
 	private List<Entry> children;
 	private long parentId;
@@ -206,18 +212,38 @@ public class Entry implements Serializable {
 
 	/**
 	 * descendantsCountを取得します。
+	 *
 	 * @return descendantsCount
 	 */
 	public int getDescendantsCount() {
-	    return descendantsCount;
+		return descendantsCount;
 	}
 
 	/**
 	 * descendantsCountを設定します。
+	 *
 	 * @param descendantsCount descendantsCount
 	 */
 	public void setDescendantsCount(int descendantsCount) {
-	    this.descendantsCount = descendantsCount;
+		this.descendantsCount = descendantsCount;
+	}
+
+	/**
+	 * 未読コメントのID(ルートエントリ以外はおそらく常にnull)を取得します。
+	 *
+	 * @return 未読コメントのID(ルートエントリ以外はおそらく常にnull)
+	 */
+	public List<Long> getUnreadCommentIds() {
+		return unreadCommentIds;
+	}
+
+	/**
+	 * 未読コメントのID(ルートエントリ以外はおそらく常にnull)を設定します。
+	 *
+	 * @param unreadCommentIds 未読コメントのID(ルートエントリ以外はおそらく常にnull)
+	 */
+	public void setUnreadCommentIds(List<Long> unreadCommentIds) {
+		this.unreadCommentIds = unreadCommentIds;
 	}
 
 	/**

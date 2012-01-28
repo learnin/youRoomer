@@ -56,7 +56,6 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 			holder.mLinearLayout = (LinearLayout) view.findViewById(R.id.entry_container);
 			holder.mUserImage = (ImageView) view.findViewById(R.id.user_image);
 			holder.mUsername = (TextView) view.findViewById(R.id.username);
-			holder.mHasRead = (TextView) view.findViewById(R.id.has_read);
 			holder.mCreatedAt = (TextView) view.findViewById(R.id.created_at);
 			holder.mContent = (TextView) view.findViewById(R.id.content);
 			view.setTag(holder);
@@ -91,7 +90,6 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 		}
 		holder.mLinearLayout.setBackgroundColor(backgroundColor);
 		holder.mUsername.setTextColor(Color.BLACK);
-		holder.mHasRead.setTextColor(Color.BLACK);
 		holder.mCreatedAt.setTextColor(Color.BLACK);
 		holder.mContent.setTextColor(Color.BLACK);
 
@@ -111,24 +109,18 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 
 		holder.mUsername.setText(entry.getParticipation().getName());
 
-		// FIXME 未読表示仮実装。画像にする
-		if (entry.hasRead()) {
-			holder.mHasRead.setVisibility(View.INVISIBLE);
-		} else {
-		    holder.mHasRead.setVisibility(View.VISIBLE);
-		}
-
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		holder.mCreatedAt.setText(df.format(entry.getCreatedAt()));
 		holder.mContent.setText(entry.getContent());
 		return view;
+
+		// FIXME unread表示の実装。親のunread-comment-idsと一致したら表示する。
 	}
 
 	private static class ViewHolder {
 		LinearLayout mLinearLayout;
 		ImageView mUserImage;
 		TextView mUsername;
-		TextView mHasRead;
 		TextView mCreatedAt;
 		TextView mContent;
 	}
