@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 public class HomeTimeLineListAdapter extends ArrayAdapter<Entry> {
 
+    private static final String EMPTY_STRING = "";
 	private LayoutInflater mLayoutInflater;
 	private YouRoomClient mYouRoomClient;
 
@@ -76,6 +77,8 @@ public class HomeTimeLineListAdapter extends ArrayAdapter<Entry> {
 		// FIXME 未読表示仮実装。画像にする
 		if (entry.hasRead()) {
 			holder.mHasRead.setVisibility(View.INVISIBLE);
+		} else {
+		    holder.mHasRead.setVisibility(View.VISIBLE);
 		}
 
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -89,6 +92,8 @@ public class HomeTimeLineListAdapter extends ArrayAdapter<Entry> {
 				mCommentCountText += "s";
 			}
 			holder.mCommentCount.setText(mCommentCountText);
+		} else {
+		    holder.mCommentCount.setText(EMPTY_STRING);
 		}
 		return view;
 	}
