@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 public class EntryListAdapter extends ArrayAdapter<Entry> {
 
+	private static final String EMPTY_STRING = "";
 	private LayoutInflater mLayoutInflater;
 	private YouRoomClient mYouRoomClient;
 	final private float mScale = getContext().getResources().getDisplayMetrics().density;
@@ -58,6 +59,7 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 			holder.mUsername = (TextView) view.findViewById(R.id.username);
 			holder.mCreatedAt = (TextView) view.findViewById(R.id.created_at);
 			holder.mContent = (TextView) view.findViewById(R.id.content);
+			holder.mHasRead = (TextView) view.findViewById(R.id.has_read);
 			view.setTag(holder);
 		} else {
 			holder = (ViewHolder) view.getTag();
@@ -92,6 +94,7 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 		holder.mUsername.setTextColor(Color.BLACK);
 		holder.mCreatedAt.setTextColor(Color.BLACK);
 		holder.mContent.setTextColor(Color.BLACK);
+		holder.mHasRead.setTextColor(Color.BLACK);
 
 		// コメントのインデント
 		float paddingLeftDip = entry.getLevel() * 10.0f;
@@ -109,6 +112,12 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 
 		holder.mUsername.setText(entry.getParticipation().getName());
 
+		if (entry.hasRead()) {
+			holder.mHasRead.setText("archived");
+		} else {
+			holder.mHasRead.setText(EMPTY_STRING);
+		}
+
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		holder.mCreatedAt.setText(df.format(entry.getCreatedAt()));
 		holder.mContent.setText(entry.getContent());
@@ -123,6 +132,7 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 		TextView mUsername;
 		TextView mCreatedAt;
 		TextView mContent;
+		TextView mHasRead;
 	}
 
 }

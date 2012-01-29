@@ -56,6 +56,7 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 			holder.mCreatedAt = (TextView) view.findViewById(R.id.created_at);
 			holder.mContent = (TextView) view.findViewById(R.id.content);
 			holder.mCommentCount = (TextView) view.findViewById(R.id.comment_count);
+			holder.mHasRead = (TextView) view.findViewById(R.id.has_read);
 			view.setTag(holder);
 		} else {
 			holder = (ViewHolder) view.getTag();
@@ -76,6 +77,12 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 		holder.mCreatedAt.setText(df.format(entry.getCreatedAt()));
 
 		holder.mContent.setText(entry.getContent());
+
+		if (entry.hasRead()) {
+			holder.mHasRead.setText("archived");
+		} else {
+			holder.mHasRead.setText(EMPTY_STRING);
+		}
 
 		if (entry.getDescendantsCount() > 0) {
 			String mCommentCountText = entry.getDescendantsCount() + " comment";
@@ -98,6 +105,7 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 		TextView mCreatedAt;
 		TextView mContent;
 		TextView mCommentCount;
+		TextView mHasRead;
 	}
 
 }

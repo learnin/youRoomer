@@ -1,6 +1,7 @@
 package com.github.learnin.youroomer;
 
 import java.lang.ref.WeakReference;
+import java.util.Iterator;
 import java.util.List;
 
 import youroom4j.Entry;
@@ -176,7 +177,14 @@ public class HomeTimeLineActivity extends AbstractTimeLineActivity {
 	}
 
 	protected List<Entry> doGetTimeLine() throws YouRoom4JException {
-		return mYouRoomClient.getHomeTimeLine();
+		List<Entry> entryList = mYouRoomClient.getHomeTimeLine();
+		// アーカイブされたエントリを削除
+		for (Iterator<Entry> it = entryList.iterator(); it.hasNext();) {
+			if (it.next().hasRead()) {
+				it.remove();
+			}
+		}
+		return entryList;
 	}
 
 	private static class GetRoomListTask extends AsyncTask<Void, Integer, List<Group>> {
