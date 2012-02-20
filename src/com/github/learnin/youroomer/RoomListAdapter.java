@@ -22,31 +22,24 @@ public class RoomListAdapter extends ArrayAdapter<Group> {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		Group group = this.getItem(position);
-		if (group == null) {
-			if (convertView == null) {
-				return mLayoutInflater.inflate(R.layout.room_row, null);
-			}
-			return convertView;
-		}
 
-		View view = convertView;
 		ViewHolder holder;
 
 		if (convertView == null) {
-			view = mLayoutInflater.inflate(R.layout.room_row, null);
+			convertView = mLayoutInflater.inflate(R.layout.room_row, null);
 			holder = new ViewHolder();
-			holder.mName = (TextView) view.findViewById(R.id.name);
-			holder.mUpdatedAt = (TextView) view.findViewById(R.id.updated_at);
-			view.setTag(holder);
+			holder.mName = (TextView) convertView.findViewById(R.id.name);
+			holder.mUpdatedAt = (TextView) convertView.findViewById(R.id.updated_at);
+			convertView.setTag(holder);
 		} else {
-			holder = (ViewHolder) view.getTag();
+			holder = (ViewHolder) convertView.getTag();
 		}
 
+		Group group = getItem(position);
 		holder.mName.setText(group.getName());
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		holder.mUpdatedAt.setText(df.format(group.getUpdatedAt()));
-		return view;
+		return convertView;
 	}
 
 	private static class ViewHolder {

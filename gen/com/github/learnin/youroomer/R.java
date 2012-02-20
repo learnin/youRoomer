@@ -15,16 +15,16 @@ public final class R {
     }
     public static final class id {
         public static final int cancel_button=0x7f050006;
-        public static final int comment_count=0x7f05000b;
+        public static final int comment_count=0x7f05000c;
         public static final int content=0x7f05000d;
         public static final int context_menu_container=0x7f050001;
         public static final int context_menu_item_list=0x7f050000;
         public static final int create_entry_button=0x7f050005;
-        public static final int created_at=0x7f05000c;
+        public static final int created_at=0x7f05000a;
         public static final int entry_container=0x7f050007;
         public static final int entry_edit_text=0x7f050003;
         public static final int entry_list=0x7f05000e;
-        public static final int has_read=0x7f05000a;
+        public static final int has_read=0x7f05000b;
         public static final int input_length=0x7f050004;
         public static final int login=0x7f050011;
         public static final int name=0x7f050015;

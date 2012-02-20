@@ -16,6 +16,9 @@ import android.widget.ImageView;
 
 public class GetUserImageTask extends AsyncTask<String, Integer, Bitmap> {
 
+	// ユーザー画像表示ピクセル
+	private static final int USER_IMAGE_PX = 48;
+
 	private YouRoomClient mYouRoomClient;
 	private ImageView mImageView;
 
@@ -36,7 +39,20 @@ public class GetUserImageTask extends AsyncTask<String, Integer, Bitmap> {
 					InputStream is = null;
 					try {
 						is = responseEntity.getContent();
-						return BitmapFactory.decodeStream(is);
+						BitmapFactory.Options options = new BitmapFactory.Options();
+						options.inPreferredConfig = Bitmap.Config.RGB_565;
+						Bitmap bitmap = BitmapFactory.decodeStream(is, null, options);
+
+						int srcWidth = bitmap.getWidth();
+						int srcHeight = bitmap.getHeight();
+						float density = mImageView.getContext().getResources().getDisplayMetrics().density;
+						float scale = USER_IMAGE_PX / density / Math.max(srcWidth, srcHeight);
+						bitmap = Bitmap.createScaledBitmap(
+							bitmap,
+							(int) (srcWidth * scale),
+							(int) (srcHeight * scale),
+							true);
+						return bitmap;
 					} finally {
 						if (is != null) {
 							is.close();

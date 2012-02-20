@@ -20,28 +20,21 @@ public class ContextMenuItemListAdapter extends ArrayAdapter<MenuItem> {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		MenuItem menuItem = this.getItem(position);
-		if (menuItem == null) {
-			if (convertView == null) {
-				return mLayoutInflater.inflate(R.layout.context_menu_item_row, null);
-			}
-			return convertView;
-		}
 
-		View view = convertView;
 		ViewHolder holder;
 
 		if (convertView == null) {
-			view = mLayoutInflater.inflate(R.layout.context_menu_item_row, null);
+			convertView = mLayoutInflater.inflate(R.layout.context_menu_item_row, null);
 			holder = new ViewHolder();
-			holder.mText = (TextView) view.findViewById(R.id.text);
-			view.setTag(holder);
+			holder.mText = (TextView) convertView.findViewById(R.id.text);
+			convertView.setTag(holder);
 		} else {
-			holder = (ViewHolder) view.getTag();
+			holder = (ViewHolder) convertView.getTag();
 		}
 
+		MenuItem menuItem = getItem(position);
 		holder.mText.setText(menuItem.getText());
-		return view;
+		return convertView;
 	}
 
 	private static class ViewHolder {

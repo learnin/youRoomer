@@ -20,10 +20,9 @@ import android.widget.TextView;
 
 public class EntryListAdapter extends ArrayAdapter<Entry> {
 
-	private static final String EMPTY_STRING = "";
 	private LayoutInflater mLayoutInflater;
 	private YouRoomClient mYouRoomClient;
-	final private float mScale = getContext().getResources().getDisplayMetrics().density;
+	private final float mScale = getContext().getResources().getDisplayMetrics().density;
 
 	public EntryListAdapter(Context context, List<Entry> entryList) {
 		super(context, 0, entryList);
@@ -40,30 +39,24 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		Entry entry = this.getItem(position);
-		if (entry == null) {
-			if (convertView == null) {
-				return mLayoutInflater.inflate(R.layout.entry_row, null);
-			}
-			return convertView;
-		}
 
-		View view = convertView;
 		ViewHolder holder;
 
 		if (convertView == null) {
-			view = mLayoutInflater.inflate(R.layout.entry_row, null);
+			convertView = mLayoutInflater.inflate(R.layout.entry_row, null);
 			holder = new ViewHolder();
-			holder.mLinearLayout = (LinearLayout) view.findViewById(R.id.entry_container);
-			holder.mUserImage = (ImageView) view.findViewById(R.id.user_image);
-			holder.mUsername = (TextView) view.findViewById(R.id.username);
-			holder.mCreatedAt = (TextView) view.findViewById(R.id.created_at);
-			holder.mContent = (TextView) view.findViewById(R.id.content);
-			holder.mHasRead = (TextView) view.findViewById(R.id.has_read);
-			view.setTag(holder);
+			holder.mLinearLayout = (LinearLayout) convertView.findViewById(R.id.entry_container);
+			holder.mUserImage = (ImageView) convertView.findViewById(R.id.user_image);
+			holder.mUsername = (TextView) convertView.findViewById(R.id.username);
+			holder.mCreatedAt = (TextView) convertView.findViewById(R.id.created_at);
+			holder.mContent = (TextView) convertView.findViewById(R.id.content);
+			holder.mHasRead = (TextView) convertView.findViewById(R.id.has_read);
+			convertView.setTag(holder);
 		} else {
-			holder = (ViewHolder) view.getTag();
+			holder = (ViewHolder) convertView.getTag();
 		}
+
+		Entry entry = getItem(position);
 
 		// 背景色、文字色の設定
 		int level = entry.getLevel();
@@ -114,14 +107,15 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 
 		if (entry.hasRead()) {
 			holder.mHasRead.setText("archived");
+			holder.mHasRead.setVisibility(View.VISIBLE);
 		} else {
-			holder.mHasRead.setText(EMPTY_STRING);
+			holder.mHasRead.setVisibility(View.GONE);
 		}
 
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		holder.mCreatedAt.setText(df.format(entry.getCreatedAt()));
 		holder.mContent.setText(entry.getContent());
-		return view;
+		return convertView;
 
 		// FIXME unread表示の実装。親のunread-comment-idsと一致したら表示する。
 	}

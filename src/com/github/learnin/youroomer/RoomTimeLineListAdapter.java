@@ -18,7 +18,6 @@ import android.widget.TextView;
 
 public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 
-	private static final String EMPTY_STRING = "";
 	private LayoutInflater mLayoutInflater;
 	private YouRoomClient mYouRoomClient;
 
@@ -37,31 +36,24 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		Entry entry = this.getItem(position);
-		if (entry == null) {
-			if (convertView == null) {
-				return mLayoutInflater.inflate(R.layout.entry_row, null);
-			}
-			return convertView;
-		}
 
-		View view = convertView;
 		ViewHolder holder;
 
 		if (convertView == null) {
-			view = mLayoutInflater.inflate(R.layout.entry_row, null);
+			convertView = mLayoutInflater.inflate(R.layout.entry_row, null);
 			holder = new ViewHolder();
-			holder.mUserImage = (ImageView) view.findViewById(R.id.user_image);
-			holder.mUsername = (TextView) view.findViewById(R.id.username);
-			holder.mCreatedAt = (TextView) view.findViewById(R.id.created_at);
-			holder.mContent = (TextView) view.findViewById(R.id.content);
-			holder.mCommentCount = (TextView) view.findViewById(R.id.comment_count);
-			holder.mHasRead = (TextView) view.findViewById(R.id.has_read);
-			view.setTag(holder);
+			holder.mUserImage = (ImageView) convertView.findViewById(R.id.user_image);
+			holder.mUsername = (TextView) convertView.findViewById(R.id.username);
+			holder.mCreatedAt = (TextView) convertView.findViewById(R.id.created_at);
+			holder.mContent = (TextView) convertView.findViewById(R.id.content);
+			holder.mCommentCount = (TextView) convertView.findViewById(R.id.comment_count);
+			holder.mHasRead = (TextView) convertView.findViewById(R.id.has_read);
+			convertView.setTag(holder);
 		} else {
-			holder = (ViewHolder) view.getTag();
+			holder = (ViewHolder) convertView.getTag();
 		}
 
+		Entry entry = getItem(position);
 		String userImageURI = entry.getParticipation().getUserImageURI();
 		Bitmap bitmap = UserImageCache.getUserImage(userImageURI);
 		if (bitmap == null) {
@@ -80,8 +72,9 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 
 		if (entry.hasRead()) {
 			holder.mHasRead.setText("archived");
+			holder.mHasRead.setVisibility(View.VISIBLE);
 		} else {
-			holder.mHasRead.setText(EMPTY_STRING);
+			holder.mHasRead.setVisibility(View.GONE);
 		}
 
 		if (entry.getDescendantsCount() > 0) {
@@ -93,10 +86,11 @@ public class RoomTimeLineListAdapter extends ArrayAdapter<Entry> {
 				mCommentCountText += "(" + entry.getUnreadCommentIds().size() + " unread)";
 			}
 			holder.mCommentCount.setText(mCommentCountText);
+			holder.mCommentCount.setVisibility(View.VISIBLE);
 		} else {
-			holder.mCommentCount.setText(EMPTY_STRING);
+			holder.mCommentCount.setVisibility(View.GONE);
 		}
-		return view;
+		return convertView;
 	}
 
 	private static class ViewHolder {
