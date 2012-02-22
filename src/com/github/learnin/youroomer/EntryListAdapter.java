@@ -33,8 +33,6 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 		oAuthTokenCredential.setTokenSecret(sharedPreferences.getString("tokenSecret", ""));
 		mYouRoomClient = YouRoomClientBuilder.createYouRoomClient();
 		mYouRoomClient.setOAuthTokenCredential(oAuthTokenCredential);
-
-		UserImageCache.clear();
 	}
 
 	@Override
@@ -95,7 +93,7 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 		holder.mLinearLayout.setPadding(paddingLeftPx, 0, 0, 0);
 
 		String userImageURI = entry.getParticipation().getUserImageURI();
-		Bitmap bitmap = UserImageCache.getUserImage(userImageURI);
+		Bitmap bitmap = UserImageCache.getInstance().get(userImageURI);
 		if (bitmap == null) {
 			GetUserImageTask getUserImageTask = new GetUserImageTask(mYouRoomClient, holder.mUserImage);
 			getUserImageTask.execute(userImageURI);

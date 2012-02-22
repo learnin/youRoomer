@@ -7,13 +7,13 @@ public class YouRoomerApplication extends Application {
 	@Override
 	public void onTerminate() {
 		super.onTerminate();
-		UserImageCache.clear();
+		UserImageCache.getInstance().clear();
 	}
 
 	@Override
 	public void onLowMemory() {
 		super.onLowMemory();
-		UserImageCache.clear();
+		UserImageCache.getInstance().clear();
 	}
 
 }

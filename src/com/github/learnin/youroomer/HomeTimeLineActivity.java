@@ -16,7 +16,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -61,6 +63,9 @@ public class HomeTimeLineActivity extends AbstractTimeLineActivity {
 		// onResumeでの実装が必要となる。
 		if (!mIsLoaded) {
 			doGetTimeLineTask();
+		} else {
+			// ユーザー画像がrecycleされていることを想定して、表示処理をさせる
+			((ArrayAdapter<Entry>) mListView.getAdapter()).notifyDataSetChanged();
 		}
 	}
 
@@ -68,6 +73,14 @@ public class HomeTimeLineActivity extends AbstractTimeLineActivity {
 	protected void onPause() {
 		super.onPause();
 		cancelGetRoomListTask();
+
+		// HOMEキー押下時にrecycle済みのBitmapにアクセスされてシステムエラーになるのを防止するため、現在表示している分の画像をクリア
+		int count = mListView.getChildCount();
+		for (int i = 0; i < count; i++) {
+			final ImageView view = (ImageView) mListView.getChildAt(i).findViewById(R.id.user_image);
+			view.setImageDrawable(null);
+		}
+		UserImageCache.getInstance().clear();
 	}
 
 	@Override

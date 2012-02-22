@@ -30,13 +30,10 @@ public class HomeTimeLineListAdapter extends ArrayAdapter<Entry> {
 		oAuthTokenCredential.setTokenSecret(sharedPreferences.getString("tokenSecret", ""));
 		mYouRoomClient = YouRoomClientBuilder.createYouRoomClient();
 		mYouRoomClient.setOAuthTokenCredential(oAuthTokenCredential);
-
-		UserImageCache.clear();
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-
 		ViewHolder holder;
 
 		if (convertView == null) {
@@ -54,8 +51,10 @@ public class HomeTimeLineListAdapter extends ArrayAdapter<Entry> {
 		}
 
 		Entry entry = getItem(position);
+
+		holder.mUserImage.setImageDrawable(null);
 		String userImageURI = entry.getParticipation().getUserImageURI();
-		Bitmap bitmap = UserImageCache.getUserImage(userImageURI);
+		Bitmap bitmap = UserImageCache.getInstance().get(userImageURI);
 		if (bitmap == null || bitmap.isRecycled()) {
 			GetUserImageTask getUserImageTask = new GetUserImageTask(mYouRoomClient, holder.mUserImage);
 			getUserImageTask.execute(userImageURI);

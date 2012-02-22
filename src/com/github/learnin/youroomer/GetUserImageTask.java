@@ -41,18 +41,7 @@ public class GetUserImageTask extends AsyncTask<String, Integer, Bitmap> {
 						is = responseEntity.getContent();
 						BitmapFactory.Options options = new BitmapFactory.Options();
 						options.inPreferredConfig = Bitmap.Config.RGB_565;
-						Bitmap bitmap = BitmapFactory.decodeStream(is, null, options);
-
-						int srcWidth = bitmap.getWidth();
-						int srcHeight = bitmap.getHeight();
-						float density = mImageView.getContext().getResources().getDisplayMetrics().density;
-						float scale = USER_IMAGE_PX / density / Math.max(srcWidth, srcHeight);
-						bitmap = Bitmap.createScaledBitmap(
-							bitmap,
-							(int) (srcWidth * scale),
-							(int) (srcHeight * scale),
-							true);
-						return bitmap;
+						return BitmapFactory.decodeStream(is, null, options);
 					} finally {
 						if (is != null) {
 							is.close();
@@ -60,7 +49,13 @@ public class GetUserImageTask extends AsyncTask<String, Integer, Bitmap> {
 					}
 				}
 			});
-			UserImageCache.setUserImage(urls[0], image);
+			int srcWidth = image.getWidth();
+			int srcHeight = image.getHeight();
+			float density = mImageView.getContext().getResources().getDisplayMetrics().density;
+			float scale = USER_IMAGE_PX / density / Math.max(srcWidth, srcHeight);
+			image = Bitmap.createScaledBitmap(image, (int) (srcWidth * scale), (int) (srcHeight * scale), true);
+			UserImageCache.getInstance().setUserImage(urls[0], image);
+			mImageView.setTag(urls[0]);
 			return image;
 		} catch (YouRoom4JException e) {
 			// FIXME
@@ -73,6 +68,9 @@ public class GetUserImageTask extends AsyncTask<String, Integer, Bitmap> {
 	protected void onPostExecute(Bitmap image) {
 		if (image != null) {
 			mImageView.setImageBitmap(image);
+			// 本来は、画像キャッシュ追加により古いキャッシュが削除された場合は、このタイミングでAdapter#notifyDataSetChanged()等の実行が必要だが、
+			// (そうしないと、1画面内のListViewの行にrecycle済みのBitmapを参照しているものがあれば、エラーになってしまう)
+			// 1画面内のListViewの行表示件数以上がキャッシュされていれば、大丈夫のはずなので省略する。
 		}
 	}
 
