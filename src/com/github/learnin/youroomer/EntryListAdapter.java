@@ -92,11 +92,17 @@ public class EntryListAdapter extends ArrayAdapter<Entry> {
 		int paddingLeftPx = (int) (paddingLeftDip * mScale + 0.5f);
 		holder.mLinearLayout.setPadding(paddingLeftPx, 0, 0, 0);
 
+		holder.mUserImage.setImageDrawable(null);
 		String userImageURI = entry.getParticipation().getUserImageURI();
-		Bitmap bitmap = UserImageCache.getInstance().get(userImageURI);
-		if (bitmap == null) {
-			GetUserImageTask getUserImageTask = new GetUserImageTask(mYouRoomClient, holder.mUserImage);
-			getUserImageTask.execute(userImageURI);
+		holder.mUserImage.setTag(userImageURI);
+		UserImageCache userImageCache = UserImageCache.getInstance();
+		Bitmap bitmap = userImageCache.get(userImageURI);
+		// 複数行に同一ユーザー画像がある場合に、同時にダウンロードTaskが走って、キャッシュ追加を行い、後勝ちで先に取得した画像がrecycleされて描画時にエラーになるのを防ぐため、
+		// また、パフォーマンスや無駄な処理を行わないようにするため、ダウンロード中画像は取得しない。代わりにGetUserImageTaskの中でダウンロード後に該当ImageView全てへ画像をセットさせる。
+		if ((bitmap == null || bitmap.isRecycled()) && !userImageCache.isDownloadingImageUrl(userImageURI)) {
+			userImageCache.addDownloadingImageUrl(userImageURI);
+			GetUserImageTask getUserImageTask = new GetUserImageTask(mYouRoomClient, userImageURI, parent);
+			getUserImageTask.execute();
 		} else {
 			holder.mUserImage.setImageBitmap(bitmap);
 		}

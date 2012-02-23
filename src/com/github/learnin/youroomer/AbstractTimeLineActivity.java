@@ -86,6 +86,7 @@ public abstract class AbstractTimeLineActivity extends Activity {
 		mReload = (Button) findViewById(R.id.reload_button);
 		mReload.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
+//				UserImageCache.getInstance().clear();
 				doGetTimeLineTask();
 			}
 		});

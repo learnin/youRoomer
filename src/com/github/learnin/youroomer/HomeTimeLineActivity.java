@@ -80,6 +80,7 @@ public class HomeTimeLineActivity extends AbstractTimeLineActivity {
 			final ImageView view = (ImageView) mListView.getChildAt(i).findViewById(R.id.user_image);
 			view.setImageDrawable(null);
 		}
+		// FIXME 全部クリアするのではなく、上記の使用中の画像は残してクリアするようにすれば、onResumeのnotifyDataSetChanged()は不要になるのでは？
 		UserImageCache.getInstance().clear();
 	}
 

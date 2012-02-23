@@ -1,5 +1,8 @@
 package com.github.learnin.youroomer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
 
@@ -11,6 +14,9 @@ public class UserImageCache extends LruCache<String, Bitmap> {
 
 	private static final UserImageCache mCache = new UserImageCache(MAX_CACHE_SIZE);
 
+	// ダウンロード中の画像URLのリスト
+	private List<String> mDownloadingImageUrls = new ArrayList<String>();
+
 	private UserImageCache(int maxSize) {
 		super(maxSize);
 	}
@@ -20,8 +26,7 @@ public class UserImageCache extends LruCache<String, Bitmap> {
 	}
 
 	public synchronized void setUserImage(String userImageURI, Bitmap bitmap) {
-		// 非同期で同一URLの画像を同時に取得しに行き、後勝ちで先に取得した画像はrecycleされてしまい、画面表示時にエラーになってしまうのを防ぐため、キャッシュにある場合はputしない
-		if (userImageURI != null && bitmap != null && get(userImageURI) == null) {
+		if (userImageURI != null && bitmap != null) {
 			put(userImageURI, bitmap);
 		}
 	}
@@ -38,6 +43,18 @@ public class UserImageCache extends LruCache<String, Bitmap> {
 		if (size() > 0) {
 			evictAll();
 		}
+	}
+
+	public boolean isDownloadingImageUrl(String url) {
+		return mDownloadingImageUrls.contains(url);
+	}
+
+	public void addDownloadingImageUrl(String url) {
+		mDownloadingImageUrls.add(url);
+	}
+
+	public void removeDownloadingImageUrl(String url) {
+		mDownloadingImageUrls.remove(url);
 	}
 
 }
