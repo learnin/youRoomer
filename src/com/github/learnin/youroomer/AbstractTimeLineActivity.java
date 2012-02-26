@@ -86,6 +86,7 @@ public abstract class AbstractTimeLineActivity extends Activity {
 		mReload = (Button) findViewById(R.id.reload_button);
 		mReload.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
+				// FIXME キャッシュのクリア。ただし、全クリアして素早くスクロールさせると、Bitmapがrecycle済みというエラーになるので、画面表示中のものは残してクリアする。
 //				UserImageCache.getInstance().clear();
 				doGetTimeLineTask();
 			}
