@@ -43,7 +43,7 @@ public class OAuthClient {
 	private String resourceOwnerAuthorizationUri;
 
 	// トークンクレデンシャルリクエストエンドポイントの URI
-	private String TokenRequestUri;
+	private String tokenRequestUri;
 
 	private OAuthTokenCredential tokenCredential = new OAuthTokenCredential();
 
@@ -53,7 +53,7 @@ public class OAuthClient {
 		this.consumerSecret = consumerSecret;
 		this.temporaryCredentialRequestUri = temporaryCredentialRequestUri;
 		this.resourceOwnerAuthorizationUri = resourceOwnerAuthorizationUri;
-		this.TokenRequestUri = TokenRequestUri;
+		this.tokenRequestUri = TokenRequestUri;
 	}
 
 	public OAuthTokenCredential getOAuthTokenCredential() {
@@ -216,10 +216,10 @@ public class OAuthClient {
 	public void tokenCredential(String oauthVerifier) throws IOException {
 
 		List<KeyValueString> paramList = createOAuthParameterForTokenCredential(oauthVerifier);
-		String signature = createSignature("POST", TokenRequestUri, paramList);
+		String signature = createSignature("POST", tokenRequestUri, paramList);
 
 		HttpRequestEntity requestEntity = new HttpRequestEntity();
-		requestEntity.setUrl(TokenRequestUri);
+		requestEntity.setUrl(tokenRequestUri);
 		requestEntity.setMethod(HttpRequestEntity.POST);
 		List<KeyValueString> headers = new ArrayList<KeyValueString>();
 		headers.add(new KeyValueString("Authorization", createOAuthHeaderString(paramList, signature)));
