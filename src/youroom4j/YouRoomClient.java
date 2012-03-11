@@ -113,13 +113,9 @@ public class YouRoomClient {
 
 		String url = "https://www.youroom.in/r/" + groupParam + "/";
 		HttpRequestEntity requestEntity = new HttpRequestEntity();
-//		requestEntity.setUrl("https://www.youroom.in/r/" + groupParam + "/?format=xml");
 		requestEntity.setUrl(url);
 		requestEntity.setMethod(HttpRequestEntity.GET);
 		requestEntity.setParams(paramList);
-//		oAuthClient.addOAuthTokenCredentialToRequestEntity(requestEntity, "https://www.youroom.in/r/"
-//			+ groupParam
-//			+ "/", paramList);
 		oAuthClient.addOAuthTokenCredentialToRequestEntity(requestEntity, url, paramList);
 
 		HttpRequestClient client = new HttpRequestClientImpl(5000, 10000, 0, Charset.forName("UTF-8"));
@@ -351,8 +347,9 @@ public class YouRoomClient {
 		paramList.add(new KeyValueString("format", "image"));
 
 		HttpRequestEntity requestEntity = new HttpRequestEntity();
-		requestEntity.setUrl(url + "?format=image");
+		requestEntity.setUrl(url);
 		requestEntity.setMethod(HttpRequestEntity.GET);
+		requestEntity.setParams(paramList);
 		oAuthClient.addOAuthTokenCredentialToRequestEntity(requestEntity, url, paramList);
 
 		HttpRequestClient client = new HttpRequestClientImpl(5000, 10000, 0, Charset.forName("UTF-8"));

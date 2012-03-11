@@ -188,6 +188,7 @@ public class HomeTimeLineActivity extends AbstractTimeLineActivity {
 				it.remove();
 			}
 		}
+		// FIXME アーカイブエントリを削除した結果、あまりに件数が少なくなった場合は次ページのデータをとりに行くべきかも
 		return entryList;
 	}
 
@@ -212,6 +213,7 @@ public class HomeTimeLineActivity extends AbstractTimeLineActivity {
 					return homeTimeLineActivity.mYouRoomClient.getMyGroups();
 					// FIXME
 					// YouRoomClient実行時のRuntimeException発生時の考慮が必要。YouRoom4J側ではcatchしないので呼び出し側で個別にcatchするか、例外ハンドラで実装するか
+					// FIXME アーカイブされたルームの削除
 				} catch (YouRoom4JException e) {
 					// FIXME
 					e.printStackTrace();
