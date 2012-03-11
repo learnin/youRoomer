@@ -93,9 +93,8 @@ public class GetUserImageTask extends AsyncTask<Void, Integer, Bitmap> {
 				// ListViewの複数行に同一ユーザー画像が表示必要な場合でもダウンロードは1つのTaskでしか行なっていないため、ListView配下のImageViewから対象を全て探してビットマップをセットする。
 				ListView listView = (ListView) mTargetView;
 				for (int i = 0, n = listView.getChildCount(); i < n; i++) {
-					// この処理は、entry_row.xml の構造に依存する
-					ImageView imageView = (ImageView) ((ViewGroup) ((ViewGroup) listView.getChildAt(i)).getChildAt(0)).getChildAt(0);
-					if (mUrl.equals(imageView.getTag())) {
+					ImageView imageView = (ImageView) listView.getChildAt(i).findViewWithTag(mUrl);
+					if (imageView != null) {
 						imageView.setImageBitmap(bitmap);
 					}
 				}

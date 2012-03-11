@@ -24,6 +24,7 @@ import youroom4j.Group;
 import youroom4j.YouRoom4JException;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -32,6 +33,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -47,7 +49,6 @@ public class HomeTimeLineActivity extends AbstractTimeLineActivity {
 
 	private Button mShowRoomList;
 
-	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -115,7 +116,6 @@ public class HomeTimeLineActivity extends AbstractTimeLineActivity {
 				Group group = (Group) listView.getItemAtPosition(position);
 				Intent intent = new Intent(getApplicationContext(), RoomTimeLineActivity.class);
 				intent.putExtra("GROUP_TO_PARAM", group.getToParam());
-				intent.putExtra("XXX", UserImageCache.getInstance());
 				startActivity(intent);
 			}
 		});
@@ -163,14 +163,8 @@ public class HomeTimeLineActivity extends AbstractTimeLineActivity {
 		mGetRoomListTask = null;
 	}
 
-	/**
-	 * エントリ一覧を表示します。<br>
-	 *
-	 * @param entryList エントリ一覧
-	 */
-	protected void showEntryList(List<Entry> entryList) {
-		mListView.setAdapter(new HomeTimeLineListAdapter(getApplicationContext(), entryList));
-		// FIXME 進捗バー
+	protected ListAdapter createTimeLineListAdapter(Context context, List<Entry> entryList) {
+		return new HomeTimeLineListAdapter(context, entryList);
 	}
 
 	/**
@@ -186,8 +180,8 @@ public class HomeTimeLineActivity extends AbstractTimeLineActivity {
 		progressBar.setVisibility(View.GONE);
 	}
 
-	protected List<Entry> doGetTimeLine() throws YouRoom4JException {
-		List<Entry> entryList = mYouRoomClient.getHomeTimeLine();
+	protected List<Entry> doGetTimeLine(int page) throws YouRoom4JException {
+		List<Entry> entryList = mYouRoomClient.getHomeTimeLine(page);
 		// アーカイブされたエントリを削除
 		for (Iterator<Entry> it = entryList.iterator(); it.hasNext();) {
 			if (it.next().hasRead()) {

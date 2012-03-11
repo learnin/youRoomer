@@ -44,11 +44,12 @@ public final class R {
         public static final int edit_entry=0x7f030002;
         public static final int entry_row=0x7f030003;
         public static final int home_time_line=0x7f030004;
-        public static final int main=0x7f030005;
-        public static final int room_list_dialog=0x7f030006;
-        public static final int room_row=0x7f030007;
-        public static final int room_time_line=0x7f030008;
-        public static final int show_entry=0x7f030009;
+        public static final int listview_footer=0x7f030005;
+        public static final int main=0x7f030006;
+        public static final int room_list_dialog=0x7f030007;
+        public static final int room_row=0x7f030008;
+        public static final int room_time_line=0x7f030009;
+        public static final int show_entry=0x7f03000a;
     }
     public static final class string {
         public static final int app_name=0x7f040001;

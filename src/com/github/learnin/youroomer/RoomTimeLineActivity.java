@@ -20,11 +20,13 @@ import java.util.List;
 import youroom4j.Entry;
 import youroom4j.YouRoom4JException;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ListAdapter;
 
 public class RoomTimeLineActivity extends AbstractTimeLineActivity {
 
@@ -98,18 +100,12 @@ public class RoomTimeLineActivity extends AbstractTimeLineActivity {
 		}
 	}
 
-	protected List<Entry> doGetTimeLine() throws YouRoom4JException {
-		return mYouRoomClient.getRoomTimeLine(mGroupToParam);
+	protected List<Entry> doGetTimeLine(int page) throws YouRoom4JException {
+		return mYouRoomClient.getRoomTimeLine(mGroupToParam, page);
 	}
 
-	/**
-	 * エントリ一覧を表示します。<br>
-	 *
-	 * @param entryList エントリ一覧
-	 */
-	protected void showEntryList(List<Entry> entryList) {
-		mListView.setAdapter(new RoomTimeLineListAdapter(getApplicationContext(), entryList));
-		// FIXME 進捗バー
+	protected ListAdapter createTimeLineListAdapter(Context context, List<Entry> entryList) {
+		return new RoomTimeLineListAdapter(context, entryList);
 	}
 
 }

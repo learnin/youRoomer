@@ -87,6 +87,16 @@ public class HttpRequestClientImpl implements HttpRequestClient {
 
 		HttpRequestBase httpRequestBase;
 		if (requestEntity.getMethod() == HttpRequestEntity.GET) {
+			List<KeyValueString> paramList = requestEntity.getParams();
+			if (paramList != null && !paramList.isEmpty()) {
+				StringBuilder url = new StringBuilder(requestEntity.getUrl());
+				url.append("?");
+				for (KeyValueString keyValueString : paramList) {
+					url.append(keyValueString.getKey()).append("=").append(keyValueString.getValue()).append("&");
+				}
+				url.deleteCharAt(url.length() - 1);
+				requestEntity.setUrl(url.toString());
+			}
 			httpRequestBase = new HttpGet(requestEntity.getUrl());
 		} else if (requestEntity.getMethod() == HttpRequestEntity.POST) {
 			httpRequestBase = new HttpPost(requestEntity.getUrl());
@@ -106,14 +116,14 @@ public class HttpRequestClientImpl implements HttpRequestClient {
 		}
 
 		List<KeyValueString> paramList = requestEntity.getParams();
-		if ((requestEntity.getMethod() == HttpRequestEntity.POST || requestEntity.getMethod() == HttpRequestEntity.PUT)
-			&& paramList != null
-			&& !paramList.isEmpty()) {
-			List<NameValuePair> params = new ArrayList<NameValuePair>();
-			for (KeyValueString keyValueString : paramList) {
-				params.add(new BasicNameValuePair(keyValueString.getKey(), keyValueString.getValue()));
+		if (paramList != null && !paramList.isEmpty()) {
+			if ((requestEntity.getMethod() == HttpRequestEntity.POST || requestEntity.getMethod() == HttpRequestEntity.PUT)) {
+				List<NameValuePair> params = new ArrayList<NameValuePair>();
+				for (KeyValueString keyValueString : paramList) {
+					params.add(new BasicNameValuePair(keyValueString.getKey(), keyValueString.getValue()));
+				}
+				((HttpEntityEnclosingRequestBase) httpRequestBase).setEntity(new UrlEncodedFormEntity(params));
 			}
-			((HttpEntityEnclosingRequestBase) httpRequestBase).setEntity(new UrlEncodedFormEntity(params));
 		}
 
 		// TODO body(key=value&...形式でないデータのPOST)のセット実装

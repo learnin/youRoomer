@@ -27,7 +27,7 @@ import android.graphics.drawable.PaintDrawable;
 import android.os.Bundle;
 import android.widget.ListView;
 
-public class ShowEntryActivity extends AbstractTimeLineActivity {
+public class ShowEntryActivity extends AbstractListActivity {
 
 	private String mGroupToParam = null;
 	private long mRootEntryId;
