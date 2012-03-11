@@ -17,12 +17,16 @@ package com.github.learnin.youroomer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import android.graphics.Bitmap;
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.util.LruCache;
 
 // BitmapによるネイティブヒープでのOutOfMemoryError発生をできるだけ避けるためにrecycleを実行する必要があるので、SoftReferenceは使用しない。
-public class UserImageCache extends LruCache<String, Bitmap> {
+public class UserImageCache extends LruCache<String, Bitmap> implements Parcelable {
 
 	// キャッシュ最大数。最低、1画面内のListViewの行表示件数以上は必要。
 	private static final int MAX_CACHE_SIZE = 50;
@@ -40,7 +44,7 @@ public class UserImageCache extends LruCache<String, Bitmap> {
 		return mCache;
 	}
 
-	public synchronized void setUserImage(String userImageURI, Bitmap bitmap) {
+	public synchronized void putUserImage(String userImageURI, Bitmap bitmap) {
 		if (userImageURI != null && bitmap != null) {
 			put(userImageURI, bitmap);
 		}
@@ -60,6 +64,16 @@ public class UserImageCache extends LruCache<String, Bitmap> {
 		}
 	}
 
+	public synchronized void putAll(UserImageCache cache) {
+		if (cache != null) {
+			Map<String, Bitmap> map = cache.snapshot();
+			for (Map.Entry<String, Bitmap> entry : map.entrySet()) {
+				put(entry.getKey(), entry.getValue());
+			}
+			map.clear();
+		}
+	}
+
 	public boolean isDownloadingImageUrl(String url) {
 		return mDownloadingImageUrls.contains(url);
 	}
@@ -70,6 +84,41 @@ public class UserImageCache extends LruCache<String, Bitmap> {
 
 	public void removeDownloadingImageUrl(String url) {
 		mDownloadingImageUrls.remove(url);
+	}
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		Map<String, Bitmap> map = snapshot();
+		Bundle bundle = new Bundle();
+		bundle.putStringArrayList("mapKeys", new ArrayList<String>(map.keySet()));
+		bundle.putParcelableArrayList("mapValues", new ArrayList<Bitmap>(map.values()));
+		dest.writeBundle(bundle);
+		map.clear();
+	}
+
+	public static final Parcelable.Creator<UserImageCache> CREATOR = new Parcelable.Creator<UserImageCache>() {
+		public UserImageCache createFromParcel(Parcel in) {
+			return new UserImageCache(in);
+		}
+
+		public UserImageCache[] newArray(int size) {
+			return new UserImageCache[size];
+		}
+	};
+
+	private UserImageCache(Parcel in) {
+		super(MAX_CACHE_SIZE);
+		Bundle bundle = in.readBundle();
+		List<String> keyList = bundle.getStringArrayList("mapKeys");
+		List<Bitmap> valueList = bundle.getParcelableArrayList("mapValues");
+		for (int i = 0, n = keyList.size(); i < n; i++) {
+			put(keyList.get(i), valueList.get(i));
+		}
 	}
 
 }

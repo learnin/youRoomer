@@ -62,14 +62,11 @@ public class RoomTimeLineActivity extends AbstractTimeLineActivity {
 
 	@Override
 	public void onResume() {
-		super.onResume();
 		Intent intent = getIntent();
 		if (intent != null) {
 			mGroupToParam = intent.getStringExtra("GROUP_TO_PARAM");
 		}
-		if (!mIsLoaded) {
-			doGetTimeLineTask();
-		}
+		super.onResume();
 	}
 
 	@Override

@@ -31,9 +31,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -70,32 +68,14 @@ public class HomeTimeLineActivity extends AbstractTimeLineActivity {
 	}
 
 	@Override
-	public void onResume() {
-		super.onResume();
-		// AsyncTaskはActivity抜けるときにはとめた方がいいだろう。ずっと動くものならServiceにすべきでそうでない非同期処理は画面に従属するのだから
-		// 画面から離れたらとめるべき。ホーム画面に移ったのにバックでまだなんか動いてるってのはキモい。
-		// で、そうすると、非同期処理実行中に例えばHOMEキー押した場合、再開してもonCreateはよばれないので処理がとまってしまうので、
-		// onResumeでの実装が必要となる。
-		if (!mIsLoaded) {
-			doGetTimeLineTask();
-		} else {
-			// ユーザー画像がrecycleされていることを想定して、表示処理をさせる
-			((ArrayAdapter<Entry>) mListView.getAdapter()).notifyDataSetChanged();
-		}
-	}
-
-	@Override
 	protected void onPause() {
 		super.onPause();
 		cancelGetRoomListTask();
+	}
 
-		// HOMEキー押下時にrecycle済みのBitmapにアクセスされてシステムエラーになるのを防止するため、現在表示している分の画像をクリア
-		int count = mListView.getChildCount();
-		for (int i = 0; i < count; i++) {
-			final ImageView view = (ImageView) mListView.getChildAt(i).findViewById(R.id.user_image);
-			view.setImageDrawable(null);
-		}
-		// FIXME 全部クリアするのではなく、上記の使用中の画像は残してクリアするようにすれば、onResumeのnotifyDataSetChanged()は不要になるのでは？
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
 		UserImageCache.getInstance().clear();
 	}
 
@@ -135,6 +115,7 @@ public class HomeTimeLineActivity extends AbstractTimeLineActivity {
 				Group group = (Group) listView.getItemAtPosition(position);
 				Intent intent = new Intent(getApplicationContext(), RoomTimeLineActivity.class);
 				intent.putExtra("GROUP_TO_PARAM", group.getToParam());
+				intent.putExtra("XXX", UserImageCache.getInstance());
 				startActivity(intent);
 			}
 		});

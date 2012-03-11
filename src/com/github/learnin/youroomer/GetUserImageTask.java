@@ -75,7 +75,7 @@ public class GetUserImageTask extends AsyncTask<Void, Integer, Bitmap> {
 			float density = mTargetView.getContext().getResources().getDisplayMetrics().density;
 			float scale = USER_IMAGE_PX / density / Math.max(srcWidth, srcHeight);
 			image = Bitmap.createScaledBitmap(image, (int) (srcWidth * scale), (int) (srcHeight * scale), true);
-			userImageCache.setUserImage(mUrl, image);
+			userImageCache.putUserImage(mUrl, image);
 			return image;
 		} catch (YouRoom4JException e) {
 			// FIXME
