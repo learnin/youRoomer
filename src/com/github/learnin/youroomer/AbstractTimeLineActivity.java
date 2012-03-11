@@ -91,12 +91,12 @@ public abstract class AbstractTimeLineActivity extends AbstractListActivity {
 	 * @param entryList エントリ一覧
 	 */
 	protected void showEntryList(List<Entry> entryList) {
-		if (entryList.isEmpty()) {
+		ArrayAdapter<Entry> adapter = getAdapter(mListView);
+		if (adapter != null && entryList.isEmpty()) {
 			mListView.removeFooterView(mListViewFooter);
 			mExistsMoreEntry = false;
 			return;
 		}
-		ArrayAdapter<Entry> adapter = getAdapter(mListView);
 		if (adapter == null) {
 			mListView.setAdapter(createTimeLineListAdapter(getApplicationContext(), entryList));
 		} else {
