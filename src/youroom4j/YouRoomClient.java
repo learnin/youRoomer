@@ -225,13 +225,17 @@ public class YouRoomClient {
 						} else if ("to-param".equals(tag)) {
 							group.setToParam(parser.nextText());
 						} else if ("categories".equals(tag)) {
-							// FIXME
+							// FIXME categoriesのセット処理
+							parentTag = "categories";
 						}
 					}
 					break;
 				case XmlPullParser.END_TAG:
 					tag = parser.getName();
-					if ("group".equals(tag)) {
+					if ("categories".equals(tag)) {
+						// FIXME categoriesのセット処理
+						parentTag = "group";
+					} else if ("group".equals(tag)) {
 						participation.setGroup(group);
 						parentTag = "participation";
 					} else if ("participation".equals(tag)) {

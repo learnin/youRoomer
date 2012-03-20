@@ -247,7 +247,9 @@ public class OAuthClient {
 			List<KeyValueString> paramList) {
 		List<KeyValueString> oauthParamList = createOAuthParameterForAuthenticatedRequest();
 		List<KeyValueString> parameterList = new ArrayList<KeyValueString>(oauthParamList);
-		parameterList.addAll(paramList);
+		if (paramList != null && !paramList.isEmpty()) {
+			parameterList.addAll(paramList);
+		}
 
 		String signature;
 		if (requestEntity.getMethod() == HttpRequestEntity.GET) {
