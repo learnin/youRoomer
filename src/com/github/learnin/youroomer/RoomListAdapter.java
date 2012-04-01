@@ -53,7 +53,7 @@ public class RoomListAdapter extends ArrayAdapter<Group> {
 		Group group = getItem(position);
 		holder.mName.setText(group.getName());
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		holder.mUpdatedAt.setText(df.format(group.getUpdatedAt()));
+		holder.mUpdatedAt.setText(df.format(group.getUpdatedAt()) + " updated");
 		return convertView;
 	}
 
