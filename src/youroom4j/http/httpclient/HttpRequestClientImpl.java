@@ -122,7 +122,7 @@ public class HttpRequestClientImpl implements HttpRequestClient {
 				for (KeyValueString keyValueString : paramList) {
 					params.add(new BasicNameValuePair(keyValueString.getKey(), keyValueString.getValue()));
 				}
-				((HttpEntityEnclosingRequestBase) httpRequestBase).setEntity(new UrlEncodedFormEntity(params));
+				((HttpEntityEnclosingRequestBase) httpRequestBase).setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 			}
 		}
 
